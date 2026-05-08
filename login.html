@@ -46,18 +46,22 @@
     }
     .card {
       width: 100%;
-      max-width: 430px;
+      max-width: 440px;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       background: linear-gradient(180deg, rgba(15, 34, 63, 0.96), rgba(10, 24, 44, 0.96));
-      padding: 1.7rem;
+      padding: 1.3rem 1.2rem 1.15rem;
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
       backdrop-filter: blur(4px);
+    }
+    .card-head {
+      text-align: center;
+      margin-bottom: 0.85rem;
     }
     .logo-wrap {
       display: flex;
       justify-content: center;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
     .logo {
       width: 64px;
@@ -66,22 +70,93 @@
       box-shadow: 0 8px 22px rgba(201, 162, 77, 0.25);
     }
     h1 {
-      margin: 0.3rem 0 0.35rem;
-      font-size: 1.45rem;
+      margin: 0.22rem 0 0.25rem;
+      font-size: 1.5rem;
       text-align: center;
       line-height: 1.35;
       color: #ffffff;
     }
     p {
-      margin: 0 0 1.3rem;
+      margin: 0 0 0.85rem;
       color: var(--muted);
-      font-size: 0.96rem;
+      font-size: 0.9rem;
       text-align: center;
       line-height: 1.7;
     }
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 0.7rem;
+      border: 1px solid var(--border);
+      padding: 0.22rem;
+      margin-bottom: 0.85rem;
+    }
+    .auth-tab {
+      border: none;
+      border-radius: 0.55rem;
+      padding: 0.45rem 0.6rem;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: default;
+    }
+    .auth-tab.active {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: #12233f;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0.85rem 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .divider::before,
+    .divider::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .oauth-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
     .actions {
       display: grid;
-      gap: 0.72rem;
+      gap: 0.6rem;
+      margin-top: 0.35rem;
+    }
+    .field {
+      position: relative;
+    }
+    .field input {
+      width: 100%;
+      border-radius: 0.65rem;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(8, 19, 39, 0.55);
+      color: var(--text);
+      padding: 0.72rem 0.72rem;
+      font: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .field input::placeholder {
+      color: rgba(143, 168, 197, 0.78);
+    }
+    .field input:focus {
+      border-color: rgba(201, 162, 77, 0.6);
+      box-shadow: 0 0 0 2px rgba(201, 162, 77, 0.14);
     }
     .btn {
       width: 100%;
@@ -97,6 +172,22 @@
       transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
       box-shadow: 0 10px 22px rgba(201, 162, 77, 0.24);
     }
+    .btn-secondary {
+      background: rgba(8, 19, 39, 0.4);
+      color: #e8f0fb;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: none;
+      font-size: 0.85rem;
+      padding: 0.67rem 0.7rem;
+    }
+    .btn-secondary:hover {
+      border-color: var(--gold);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+      filter: none;
+    }
+    .btn-primary {
+      margin-top: 0.2rem;
+    }
     .btn:hover {
       transform: translateY(-2px);
       filter: brightness(1.03);
@@ -108,7 +199,7 @@
     .hint {
       font-size: 0.82rem;
       color: var(--muted);
-      margin-top: 1rem;
+      margin-top: 0.85rem;
       text-align: center;
       line-height: 1.65;
     }
@@ -120,22 +211,31 @@
       text-align: center;
       line-height: 1.5;
     }
+    .link-line {
+      margin-top: 0.7rem;
+      text-align: center;
+      font-size: 0.79rem;
+      color: var(--muted);
+    }
 
     @media (max-width: 480px) {
       .card {
         border-radius: 16px;
-        padding: 1.15rem 1rem;
+        padding: 1rem 0.9rem 0.95rem;
       }
       h1 {
-        font-size: 1.25rem;
+        font-size: 1.32rem;
       }
       p {
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
+        font-size: 0.86rem;
+        margin-bottom: 0.7rem;
       }
       .btn {
         padding: 0.74rem 0.85rem;
         font-size: 0.92rem;
+      }
+      .oauth-row {
+        grid-template-columns: 1fr;
       }
       .logo {
         width: 56px;
@@ -146,18 +246,38 @@
 </head>
 <body>
   <main class="card">
-    <div class="logo-wrap">
-      <img src="logo.png" alt="PPAlend logo" class="logo">
+    <div class="card-head">
+      <div class="logo-wrap">
+        <img src="logo.png" alt="PPAlend logo" class="logo">
+      </div>
+      <h1>ئەلەند</h1>
+      <p>بەخێربێیتەوە — بۆ بەردەستبوونی ناوەڕۆک بچۆرە ژوورەوە.</p>
     </div>
-    <h1>چوونەژوورەوەی پارێزراو</h1>
-    <p>بۆ گەیشتن بە ناوەڕۆکی پەروەردەیی، تکایە بە گووگڵ یان ئەپڵ بچۆرە ژوورەوە.</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" type="button">چوونەژوورەوە</button>
+      <button class="auth-tab" type="button">تۆمارکردن</button>
+    </div>
+
+    <div class="oauth-row">
+      <button class="btn btn-secondary" id="appleBtn" type="button">Apple</button>
+      <button class="btn btn-secondary" id="googleBtn" type="button">Google</button>
+    </div>
+
+    <div class="divider">یان</div>
 
     <div class="actions">
-      <button class="btn" id="googleBtn">چوونەژوورەوە بە Google</button>
-      <button class="btn" id="appleBtn">چوونەژوورەوە بە Apple</button>
+      <div class="field">
+        <input type="email" placeholder="ئیمەیڵەکەت" autocomplete="email">
+      </div>
+      <div class="field">
+        <input type="password" placeholder="تێپەڕەوشە" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="emailFlowBtn" type="button">چوونەژوورەوە</button>
     </div>
     <div class="error" id="authError"></div>
     <div class="hint">تەنها بەکارهێنەری ڕێپێدراو دەتوانێت ناوەڕۆکی پارێزراو ببینێت.</div>
+    <div class="link-line">هەژمارت نییە؟ دواتر دەتوانرێت دامەزرێت.</div>
   </main>
 
   <script src="js/env.js"></script>
@@ -169,7 +289,8 @@
       await window.AlendAuth.init();
       const session = await window.AlendAuth.getSession();
       if (session?.user) {
-        window.location.href = "index.html";
+        const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
+        window.location.href = returnTo;
       }
     }
 
@@ -189,6 +310,10 @@
       } catch (error) {
         errorNode.textContent = error.message || "Apple sign-in failed.";
       }
+    });
+
+    document.getElementById("emailFlowBtn").addEventListener("click", () => {
+      errorNode.textContent = "ئەمەش زۆر زوو دێت. تکایە نێوان Google/Apple هەڵبژێرە.";
     });
 
     bootLogin();
