@@ -12,6 +12,22 @@
     };
   }
 
+  function safeUrl(value) {
+    try {
+      return new URL(value).toString().replace(/\/+$/, "");
+    } catch {
+      return "";
+    }
+  }
+
+  function getAppBaseUrl() {
+    const cfg = getConfig();
+    const runtimeOrigin = safeUrl(window.location.origin);
+    const configured = safeUrl(cfg.siteUrl);
+    // Prefer current runtime origin for Vercel/preview compatibility.
+    return runtimeOrigin || configured || "";
+  }
+
   function hasValidConfig() {
     const cfg = getConfig();
     return cfg.url.startsWith("https://") && cfg.anonKey.length > 20;
@@ -68,9 +84,10 @@
   async function signInWithOAuth(provider) {
     const client = await init();
     if (!client) throw new Error("Supabase env config is missing");
-    const cfg = getConfig();
-
-    const redirectTo = `${cfg.siteUrl}/index.html`;
+    const appBase = getAppBaseUrl();
+    if (!appBase) throw new Error("Invalid app base URL");
+    const redirectTo = `${appBase}/login.html?oauth=callback`;
+    localStorage.setItem("alend_auth_return_to", window.location.href);
     const { error } = await client.auth.signInWithOAuth({
       provider,
       options: {
@@ -85,15 +102,17 @@
     const client = await init();
     if (!client) return;
     await client.auth.signOut();
-    const cfg = getConfig();
-    window.location.href = `${cfg.siteUrl}/login.html`;
+    const appBase = getAppBaseUrl();
+    window.location.href = `${appBase}/login.html`;
   }
 
   async function requireAuth() {
     const session = await getSession();
     if (!session?.user) {
-      const cfg = getConfig();
-      window.location.href = `${cfg.siteUrl}/login.html`;
+      const appBase = getAppBaseUrl();
+      const current = window.location.pathname + window.location.search + window.location.hash;
+      localStorage.setItem("alend_auth_return_to", current);
+      window.location.href = `${appBase}/login.html`;
     }
   }
 
@@ -102,8 +121,16 @@
     const user = await getUser();
     const cfg = getConfig();
     if (!user || !cfg.adminEmail || user.email?.toLowerCase() !== cfg.adminEmail) {
-      window.location.href = `${cfg.siteUrl}/index.html`;
+      const appBase = getAppBaseUrl();
+      window.location.href = `${appBase}/index.html`;
     }
+  }
+
+  function consumeReturnTo() {
+    const value = localStorage.getItem("alend_auth_return_to");
+    if (!value) return null;
+    localStorage.removeItem("alend_auth_return_to");
+    return value;
   }
 
   window.AlendAuth = {
@@ -113,6 +140,7 @@
     signInWithOAuth,
     signOut,
     requireAuth,
-    requireAdmin
+    requireAdmin,
+    consumeReturnTo
   };
 })();

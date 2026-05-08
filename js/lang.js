@@ -70,6 +70,17 @@ const translations = {
     subj_page_islam: "قسم التربية الإسلامية",
     subj_page_english: "قسم اللغة الإنجليزية",
     subj_page_average: "المعدلات",
+    footer_brand_title: "منصة ألند التعليمية",
+    footer_brand_desc: "منصة تعليمية حديثة لتقديم محتوى دراسي منظم وسريع الوصول.",
+    footer_links_title: "الروابط",
+    footer_contact_title: "التواصل",
+    footer_newsletter_title: "النشرة البريدية",
+    footer_nav_home: "الرئيسية",
+    footer_nav_subjects: "الأقسام",
+    footer_nav_about: "عن المنصة",
+    footer_nav_login: "تسجيل الدخول",
+    footer_newsletter_placeholder: "بريدك الإلكتروني",
+    footer_newsletter_btn: "اشتراك"
   },
 
   ku: {
@@ -140,6 +151,17 @@ const translations = {
     subj_page_islam: "بەشی پەروەردەی ئیسلامی",
     subj_page_english: "بەشی زمانی ئینگلیزی",
     subj_page_average: "تێکڕای نمرە",
+    footer_brand_title: "پلاتفۆرمی پەروەردەیی ئەلند",
+    footer_brand_desc: "پلاتفۆرمێکی مۆدێرن بۆ پێشکەشکردنی ناوەڕۆکی خوێندنی ڕێکخراو و خێرا.",
+    footer_links_title: "بەستەرەکان",
+    footer_contact_title: "پەیوەندی",
+    footer_newsletter_title: "نامەی هەواڵ",
+    footer_nav_home: "سەرەکی",
+    footer_nav_subjects: "بەشەکان",
+    footer_nav_about: "دەربارە",
+    footer_nav_login: "چوونەژوورەوە",
+    footer_newsletter_placeholder: "ئیمەیڵەکەت",
+    footer_newsletter_btn: "تۆمار"
   },
 
   ba: {
@@ -210,6 +232,17 @@ const translations = {
     subj_page_islam: "بەشی پەروەردەی ئیسلامی",
     subj_page_english: "بەشی زمانی ئینگلیزی",
     subj_page_average: "تێکڕای نمرە",
+    footer_brand_title: "پلاتفۆرمی پەروەردەیی ئەلەند",
+    footer_brand_desc: "پلاتفۆرمێکی مۆدێرن بۆ پێشکەشکردنی ناوەرۆکی خوێندنی ڕێکخراو و خێرا.",
+    footer_links_title: "بەستەرەکان",
+    footer_contact_title: "پەیوەندی",
+    footer_newsletter_title: "نامەی هەواڵ",
+    footer_nav_home: "سەرەتا",
+    footer_nav_subjects: "بەشەکان",
+    footer_nav_about: "دەربارە",
+    footer_nav_login: "چوونەژوورەوە",
+    footer_newsletter_placeholder: "ئیمەیڵەکەت",
+    footer_newsletter_btn: "تۆمار"
   }
 };
 

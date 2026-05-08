@@ -111,22 +111,22 @@ function upgradeFooter() {
           <div class="footer-brand">
             <img src="${root}logo.png" alt="PPAlend" class="footer-logo">
             <div>
-              <h3>پلاتفۆرمی پەروەردەیی ئەلند</h3>
-              <p class="footer-desc">پلاتفۆرمێکی مۆدێرن بۆ پێشکەشکردنی ناوەڕۆکی خوێندنی بەکوێت و بەخێرایی.</p>
+              <h3 data-lang="footer_brand_title">پلاتفۆرمی پەروەردەیی ئەلند</h3>
+              <p class="footer-desc" data-lang="footer_brand_desc">پلاتفۆرمێکی مۆدێرن بۆ پێشکەشکردنی ناوەڕۆکی خوێندنی بەکوێت و بەخێرایی.</p>
             </div>
           </div>
         </div>
         <div>
-          <p class="footer-title">بەستەرەکان</p>
+          <p class="footer-title" data-lang="footer_links_title">بەستەرەکان</p>
           <ul class="footer-links">
-            <li><a href="${root}index.html">سەرەکی</a></li>
-            <li><a href="${root}index.html#subjects">بەشەکان</a></li>
-            <li><a href="${root}index.html#about">دەربارە</a></li>
-            <li><a href="${root}login.html">چوونەژوورەوە</a></li>
+            <li><a href="${root}index.html" data-lang="footer_nav_home">سەرەکی</a></li>
+            <li><a href="${root}index.html#subjects" data-lang="footer_nav_subjects">بەشەکان</a></li>
+            <li><a href="${root}index.html#about" data-lang="footer_nav_about">دەربارە</a></li>
+            <li><a href="${root}login.html" data-lang="footer_nav_login">چوونەژوورەوە</a></li>
           </ul>
         </div>
         <div>
-          <p class="footer-title">پەیوەندی</p>
+          <p class="footer-title" data-lang="footer_contact_title">پەیوەندی</p>
           <div class="footer-contact">
             <p>📧 support@ppalend.com</p>
             <p>📍 Kurdistan - Iraq</p>
@@ -139,18 +139,21 @@ function upgradeFooter() {
           </div>
         </div>
         <div class="footer-newsletter">
-          <p class="footer-title">نامەی هەواڵ</p>
+          <p class="footer-title" data-lang="footer_newsletter_title">نامەی هەواڵ</p>
           <form action="mailto:support@ppalend.com" method="post" enctype="text/plain">
-            <input class="footer-input" type="email" name="email" placeholder="ئیمەیڵەکەت" required>
-            <button class="footer-btn" type="submit">تۆمار</button>
+            <input class="footer-input" type="email" name="email" data-lang-placeholder="footer_newsletter_placeholder" placeholder="ئیمەیڵەکەت" required>
+            <button class="footer-btn" type="submit" data-lang="footer_newsletter_btn">تۆمار</button>
           </form>
         </div>
       </div>
-      <div class="footer-bottom">© ${year} PPAlend - هەموو مافەکان پارێزراون</div>
+      <div class="footer-bottom">© ${year} PPAlend - <span data-lang="footer_rights">هەموو مافەکان پارێزراون</span></div>
     </div>
   `;
 
   footer.dataset.enhanced = "true";
+  if (typeof LangManager !== "undefined") {
+    LangManager.apply();
+  }
 }
 
 // Init on DOM ready
