@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-page-title>صف 9 | المنهاج العربي</title>
+  <link rel="icon" href="../../logo.png" type="image/png">
+  <link rel="stylesheet" href="../../css/main.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="../../index.html" class="logo-area">
+      <img src="../../logo.png" alt="ئەلند">
+      <span data-lang="hero_subtitle">پلاتفۆرمی پەروەردەیی ئەلند</span>
+    </a>
+
+    <nav class="site-nav" id="siteNav">
+      <a href="../../index.html" data-lang="nav_home">سەرەکی</a>
+      <a href="../../index.html#subjects" data-lang="nav_subjects">بەشەکان</a>
+      <a href="../../index.html#about" data-lang="nav_about">دەربارەی پلاتفۆرم</a>
+    </nav>
+
+    <div class="header-controls">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang-btn data-lang="ku">کو</button>
+        <button class="lang-btn" data-lang-btn data-lang="ar">عر</button>
+      </div>
+      <button class="theme-toggle" aria-label="toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <button class="menu-toggle" id="menuToggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <button class="back-btn" onclick="goBack()"><span data-lang="btn_back">گەڕانەوە بۆ بەشەکان</span>
+    </button>
+    <h1 class="page-title">
+      📙 <span data-lang="curr_arabic_desc">المنهاج العربي</span>
+    </h1>
+  </div>
+</section>
+
+<!-- RESOURCES -->
+<section class="section subjects-section" id="subjects">
+  <div class="section-inner">
+    <div class="section-header fade-up">
+      <div class="section-label">📚</div>
+      <h2 class="section-title" data-lang="sec_subjects">بەشەکانی خوێندن</h2>
+      <p class="section-subtitle" data-lang="sec_subjects_sub">بابەتەکە هەڵبژێرە</p>
+    </div>
+
+    <div class="subjects-grid">
+      <a class="subject-card fade-up" href="../ar.science.html">
+        <div class="subject-icon">🔬</div>
+        <div class="subject-name" data-lang="subj_science">زانست</div>
+        <div class="subject-desc" data-lang="subj_science_desc">کتێب، ڕوونکردنەوە، وەزارەتی</div>
+        <div class="subject-arrow">◀</div>
+      </a>
+
+      <a class="subject-card fade-up fade-up-2" href="../ar.math.html">
+        <div class="subject-icon">📐</div>
+        <div class="subject-name" data-lang="subj_math">بیرکاری</div>
+        <div class="subject-desc" data-lang="subj_math_desc">کتێب، ڕوونکردنەوە، وەزارەتی</div>
+        <div class="subject-arrow">◀</div>
+      </a>
+
+      <a class="subject-card fade-up fade-up-3" href="../ar.kurdish.html">
+        <div class="subject-icon">📖</div>
+        <div class="subject-name" data-lang="subj_kurdish">زمانی کوردی</div>
+        <div class="subject-desc" data-lang="subj_kurdish_desc">کتێب، ڕوونکردنەوە، وەزارەتی</div>
+        <div class="subject-arrow">◀</div>
+      </a>
+
+      <a class="subject-card fade-up fade-up-4" href="../ar.arabic.html">
+        <div class="subject-icon">✍️</div>
+        <div class="subject-name" data-lang="subj_arabic">زمانی عەرەبی</div>
+        <div class="subject-desc" data-lang="subj_arabic_desc">کتێب، ڕوونکردنەوە، وەزارەتی</div>
+        <div class="subject-arrow">◀</div>
+      </a>
+
+      <a class="subject-card fade-up" href="../ar.social.html">
+        <div class="subject-icon">🌍</div>
+        <div class="subject-name" data-lang="subj_social">کۆمەڵایەتی</div>
+        <div class="subject-desc" data-lang="subj_social_desc">کتێب، ڕوونکردنەوە، وەزارەتی</div>
+        <div class="subject-arrow">◀</div>
+      </a>
+
+      <a class="subject-card fade-up fade-up-2" href="../ar.islam.html">
+        <div class="subject-icon">🌙</div>
+        <div class="subject-name" data-lang="subj_islam">پەروەردەی ئیسلامی</div>
+        <div class="subject-desc" data-lang="subj_islam_desc">کتێب، پرسیار، وەزارەتی</div>
+        <div class="subject-arrow">◀</div>
+      </a>
+
+      <a class="subject-card fade-up fade-up-3" href="../ar.english.html">
+        <div class="subject-icon">🌐</div>
+        <div class="subject-name" data-lang="subj_english">زمانی ئینگلیزی</div>
+        <div class="subject-desc" data-lang="subj_english_desc">کتێب، ڕوونکردنەوە، وەزارەتی</div>
+        <div class="subject-arrow">◀</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  © 2026 <span>PPAlend</span> – <span data-lang="footer_rights">هەموو مافەکان پارێزراون</span>
+</footer>
+
+<script src="../../js/lang.js"></script>
+<script src="../../js/theme.js"></script>
+<script>
+  const urlLang = new URLSearchParams(window.location.search).get('lang');
+  if (urlLang && ['ku','ba','ar'].includes(urlLang)) {
+    localStorage.setItem('alend_lang', urlLang);
+  }
+
+  function goBack() {
+    window.location.href = `../../index.html?lang=${LangManager.current}#subjects`;
+  }
+
+  function updateThemeIcon() {
+    const icon = document.querySelector('.theme-icon');
+    if (icon) icon.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  }
+  document.querySelector('.theme-toggle')?.addEventListener('click', updateThemeIcon);
+  updateThemeIcon();
+
+  document.getElementById('menuToggle')?.addEventListener('click', () => {
+    document.getElementById('siteNav').classList.toggle('open');
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.style.opacity = '1'; });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
+
+  LangManager.init();
+</script>
+</body>
+</html>

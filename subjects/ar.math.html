@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-page-title>Math | PPAlend</title>
+  <link rel="icon" href="../logo.png" type="image/png">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="../index.html" class="logo-area">
+      <img src="../logo.png" alt="ئەلند">
+      <span data-lang="hero_subtitle">پلاتفۆرمی پەروەردەیی ئەلند</span>
+    </a>
+
+    <nav class="site-nav" id="siteNav">
+      <a href="../index.html" data-lang="nav_home">سەرەکی</a>
+      <a href="../index.html#subjects" data-lang="nav_subjects">بەشەکان</a>
+      <a href="../index.html#about" data-lang="nav_about">دەربارەی پلاتفۆرم</a>
+    </nav>
+
+    <div class="header-controls">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang-btn data-lang="ku">کو</button>
+        <button class="lang-btn" data-lang-btn data-lang="ar">عر</button>
+      </div>
+      <button class="theme-toggle" aria-label="toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+      <button class="menu-toggle" id="menuToggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <button class="back-btn" onclick="goBack()"><span data-lang="btn_back">گەڕانەوە بۆ بەشەکان</span>
+    </button>
+    <h1 class="page-title">
+      📐 <span data-lang="subj_page_math">بەشی math</span>
+    </h1>
+  </div>
+</section>
+
+<!-- RESOURCES -->
+<section class="resources-section">
+  <div class="resources-grid">
+
+    <a href="../ar/math/books.html" class="resource-card fade-up">
+      <div class="resource-icon">📘</div>
+      <div class="resource-name" data-lang="btn_books">کتێبی گشتگیر</div>
+    </a>
+
+    <a href="../ar/math/wazariyat.html" class="resource-card fade-up fade-up-2">
+      <div class="resource-icon">📝</div>
+      <div class="resource-name" data-lang="btn_wazariyat">وەزارەتییەکان</div>
+    </a>
+
+    <a href="../ar/math/teachers.html" class="resource-card fade-up fade-up-3">
+      <div class="resource-icon">👨‍🏫</div>
+      <div class="resource-name" data-lang="btn_teachers">ملازمی مامۆستایان</div>
+    </a>
+
+    <a href="../ar/math/explanations.html" class="resource-card fade-up fade-up-4">
+      <div class="resource-icon">🎥</div>
+      <div class="resource-name" data-lang="btn_explanations">ڕوونکردنەوەکان</div>
+    </a>
+
+    <a href="../ar/math/questions.html" class="resource-card fade-up">
+      <div class="resource-icon">❓</div>
+      <div class="resource-name" data-lang="btn_questions">پرسیارە وەزارەتییەکان</div>
+    </a>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">© 2026 <span>PPAlend</span> – <span data-lang="footer_rights">هەموو مافەکان پارێزراون</span></footer>
+
+<script src="../js/lang.js"></script>
+<script src="../js/theme.js"></script>
+<script>
+  const urlLang = new URLSearchParams(window.location.search).get('lang');
+  if (urlLang && ['ku','ba','ar'].includes(urlLang)) {
+    localStorage.setItem('alend_lang', urlLang);
+  }
+
+  function goBack() {
+    window.location.href = `../index.html?lang=${LangManager.current}#subjects`;
+  }
+
+  function updateThemeIcon() {
+    const icon = document.querySelector('.theme-icon');
+    if (icon) icon.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  }
+  document.querySelector('.theme-toggle')?.addEventListener('click', updateThemeIcon);
+  updateThemeIcon();
+
+  document.getElementById('menuToggle')?.addEventListener('click', () => {
+    document.getElementById('siteNav').classList.toggle('open');
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.style.opacity = '1'; });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
+
+  LangManager.init();
+</script>
+</body>
+</html>

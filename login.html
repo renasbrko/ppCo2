@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | PPAlend</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <style>
+    :root {
+      --bg: #080f1e;
+      --card: #0c1829;
+      --border: rgba(255, 255, 255, 0.08);
+      --gold: #c9a24d;
+      --text: #e8f0fb;
+      --muted: #8fa8c5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      padding: 1.5rem;
+    }
+    .logo { width: 56px; height: 56px; border-radius: 12px; }
+    h1 { margin: 0.75rem 0 0.3rem; font-size: 1.4rem; }
+    p { margin: 0 0 1.2rem; color: var(--muted); font-size: 0.95rem; }
+    .btn {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #101f35;
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      margin-bottom: 0.7rem;
+      font-weight: 700;
+    }
+    .btn:hover { border-color: var(--gold); }
+    .hint { font-size: 0.82rem; color: var(--muted); margin-top: 0.8rem; }
+    .error { color: #ff8a8a; font-size: 0.85rem; min-height: 1.2rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img src="logo.png" alt="PPAlend logo" class="logo">
+    <h1>Secure Login</h1>
+    <p>Sign in to access curriculum and educational content.</p>
+
+    <button class="btn" id="googleBtn">Continue with Google</button>
+    <button class="btn" id="appleBtn">Continue with Apple</button>
+    <div class="error" id="authError"></div>
+    <div class="hint">Only authenticated users can access protected pages.</div>
+  </main>
+
+  <script src="js/env.js"></script>
+  <script src="js/supabase-auth.js"></script>
+  <script>
+    const errorNode = document.getElementById("authError");
+
+    async function bootLogin() {
+      await window.AlendAuth.init();
+      const session = await window.AlendAuth.getSession();
+      if (session?.user) {
+        window.location.href = "index.html";
+      }
+    }
+
+    document.getElementById("googleBtn").addEventListener("click", async () => {
+      errorNode.textContent = "";
+      try {
+        await window.AlendAuth.signInWithOAuth("google");
+      } catch (error) {
+        errorNode.textContent = error.message || "Google sign-in failed.";
+      }
+    });
+
+    document.getElementById("appleBtn").addEventListener("click", async () => {
+      errorNode.textContent = "";
+      try {
+        await window.AlendAuth.signInWithOAuth("apple");
+      } catch (error) {
+        errorNode.textContent = error.message || "Apple sign-in failed.";
+      }
+    });
+
+    bootLogin();
+  </script>
+</body>
+</html>

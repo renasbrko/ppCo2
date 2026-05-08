@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurdish | PPAlend</title>
+  <link rel="icon" href="../../logo.png" type="image/png">
+  <link rel="stylesheet" href="../../css/main.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="../../index.html" class="logo-area"><img src="../../logo.png" alt="PPAlend"><span data-lang="hero_subtitle">پلاتفۆرمی پەروەردەیی ئەلند</span></a>
+    <nav class="site-nav" id="siteNav">
+      <a href="../../index.html" data-lang="nav_home">الرئيسية</a>
+      <a href="../../index.html#subjects" data-lang="nav_subjects">الأقسام</a>
+      <a href="../../index.html#about" data-lang="nav_about">عن المجموعة</a>
+    </nav>
+    <div class="header-controls">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang-btn data-lang="ku">کو</button>
+        <button class="lang-btn" data-lang-btn data-lang="ar">عر</button>
+      </div>
+      <button class="theme-toggle"><span class="theme-icon">🌙</span></button>
+      <button class="menu-toggle" id="menuToggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <button class="back-btn" onclick="goBack()"><span data-lang="btn_back">العودة</span></button>
+    <h1 class="page-title">👨‍🏫 <span data-lang="page_teachers">المحتوى</span></h1>
+  </div>
+</section>
+
+<section class="resources-section" style="padding-top:2rem;">
+  <div style="max-width:800px;margin:0 auto;">
+    <div class="coming-soon-box fade-up">
+      <div class="coming-soon-icon">🚀</div>
+      <div class="coming-soon-title" data-lang="coming_soon">قريباً</div>
+      <p class="coming-soon-desc" data-lang="coming_soon_desc">نعمل على توفير هذا المحتوى في أقرب وقت</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">© 2026 <span>PPAlend</span> – <span data-lang="footer_rights">جميع الحقوق محفوظة</span></footer>
+
+<script src="../../js/lang.js"></script>
+<script src="../../js/theme.js"></script>
+<script>
+  const urlLang = new URLSearchParams(window.location.search).get('lang');
+  if (urlLang && ['ku','ba','ar'].includes(urlLang)) localStorage.setItem('alend_lang', urlLang);
+  function goBack() { window.location.href = '../../subjects/ar.kurdish.html?lang=' + LangManager.current; }
+  function updateThemeIcon() {
+    const i = document.querySelector('.theme-icon');
+    if(i) i.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  }
+  document.querySelector('.theme-toggle')?.addEventListener('click', updateThemeIcon);
+  updateThemeIcon();
+  document.getElementById('menuToggle')?.addEventListener('click', () => {
+    document.getElementById('siteNav').classList.toggle('open');
+  });
+</script>
+</body>
+</html>

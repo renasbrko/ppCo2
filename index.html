@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>پلاتفۆرمی پەروەردەیی ئەلند | PPAlend</title>
+  <meta name="description" content="پلاتفۆرمی پەروەردەیی ئەلند - منصة ألند التعليمية">
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header">
+  <div class="header-inner">
+    <!-- Logo -->
+    <a href="index.html" class="logo-area">
+      <img src="logo.png" alt="ئەلند">
+      <span data-lang="hero_subtitle">پلاتفۆرمی پەروەردەیی ئەلند</span>
+    </a>
+
+    <!-- Nav -->
+    <nav class="site-nav" id="siteNav">
+      <a href="#home" data-lang="nav_home">سەرەکی</a>
+      <a href="#subjects" data-lang="nav_subjects">بەشەکان</a>
+      <a href="#about" data-lang="nav_about">دەربارەی پلاتفۆرم</a>
+    </nav>
+
+    <!-- Controls -->
+    <div class="header-controls">
+      <a href="login.html" id="authActionBtn" class="hero-btn" style="padding:0.45rem 0.9rem;font-size:0.85rem;">Login</a>
+      <!-- Language Switcher -->
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang-btn data-lang="ku">کو</button>
+        <!-- <button class="lang-btn" data-lang-btn data-lang="ba">با</button> -->
+        <button class="lang-btn" data-lang-btn data-lang="ar">عر</button>
+      </div>
+
+      <!-- Theme Toggle -->
+      <button class="theme-toggle" title="تغيير الثيم" aria-label="toggle theme">
+        <span class="theme-icon">🌙</span>
+      </button>
+
+      <!-- Mobile Menu -->
+      <button class="menu-toggle" id="menuToggle" aria-label="menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="home">
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <!-- Text -->
+    <div class="hero-text fade-up">
+      <div class="hero-badge">
+        🎓 <span data-lang="hero_subtitle">پلاتفۆرمی پەروەردەیی ئەلند</span>
+      </div>
+
+      <h1 class="hero-title" data-lang="hero_name">
+        ئەلند
+      </h1>
+
+      <p class="hero-subtitle" data-lang="hero_subtitle">پلاتفۆرمی پەروەردەیی ئەلند</p>
+
+      <p class="hero-desc" data-lang="hero_desc">
+        لە پلاتفۆرمی ئەلند، ئێمە تەنها ناوەڕۆکی پەروەردەیی دابین ناکەین... دەرفەت دروست دەکەین و داهاتوویەک بنیات دەنێین.
+      </p>
+
+      <a href="#subjects" class="hero-btn" data-lang="hero_btn">دەستت پێ بکە</a>
+
+      <!-- Stats -->
+      <div class="hero-stats" style="margin-top: 2.5rem;">
+        <div class="stat-item">
+          <div class="stat-num">7</div>
+          <div class="stat-label" data-lang="stat_subjects">بابەتی خوێندن</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">5+</div>
+          <div class="stat-label" data-lang="stat_resources">سەرچاوەی خوێندن</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">100%</div>
+          <div class="stat-label" data-lang="stat_free">بەتەواوی خۆڕایی</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo -->
+    <div class="hero-logo-area fade-up fade-up-2">
+      <div class="hero-logo-wrap">
+        <div class="hero-logo-ring"></div>
+        <img src="logo.png" alt="ئەلند" class="hero-logo-img">
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="gold-divider">
+
+<!-- ===== SUBJECTS ===== -->
+<section class="section subjects-section" id="subjects">
+  <div class="section-inner">
+    <div class="section-header fade-up">
+      <div class="section-label">📚</div>
+      <h2 class="section-title" data-lang="sec_subjects">بەشەکانی خوێندن</h2>
+      <p class="section-subtitle" data-lang="sec_subjects_sub">بابەتەکە هەڵبژێرە</p>
+    </div>
+
+    <div class="subjects-grid curriculum-grid">
+      <div class="subject-card curriculum-card fade-up" onclick="goToCurriculum('badini')">
+        <div class="subject-icon">📘</div>
+        <div class="subject-name" data-lang="curr_badini_title">بۆلا 9</div>
+        <div class="subject-desc" data-lang="curr_badini_desc">منهاجی کوردی بادینی</div>
+        <div class="subject-arrow">◀</div>
+      </div>
+
+      <div class="subject-card curriculum-card fade-up fade-up-2" onclick="goToCurriculum('arabic')">
+        <div class="subject-icon">📙</div>
+        <div class="subject-name" data-lang="curr_arabic_title">صف 9</div>
+        <div class="subject-desc" data-lang="curr_arabic_desc">المنهاج العربي</div>
+        <div class="subject-arrow">◀</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="gold-divider">
+
+<!-- ===== ABOUT ===== -->
+<section class="section about-section" id="about">
+  <div class="section-inner">
+    <div class="section-header fade-up">
+      <div class="section-label">💡</div>
+      <h2 class="section-title" data-lang="sec_about">دەربارەی پلاتفۆرم</h2>
+    </div>
+
+    <div class="about-card fade-up">
+      <h3 style="font-size:1.3rem;font-weight:800;color:var(--gold);margin-bottom:0.5rem;" data-lang="about_title">
+        پلاتفۆرمی پەروەردەیی ئەلند
+      </h3>
+
+      <h4 style="font-size:1rem;font-weight:700;color:var(--gold);margin-bottom:1.25rem;opacity:0.85;" data-lang="about_vision_title">
+        بینینمان
+      </h4>
+
+      <p class="about-text" data-lang="about_p1">
+        پلاتفۆرمی ئەلند بەرقەکەی بێت کە ڕستاخێزی پەروەردەیی ڕاستەقینە لە کۆمەڵگای کوردی پێیبکاتەوە، و بێت یەکەم مەودا بۆ هەر خوێندکارێک کە بەدوای تایبەتمەندی و زانیاری دەگەڕێت.
+      </p>
+
+      <p class="about-text" data-lang="about_p2">
+        ئەمانەی دەمانەوێت: بنیاتنانی نەسلێکی بەهێز، ئاگادار و داهێنەر کە تەنها فێربوون ناخرێتە ژوورەوە بەڵکوو گۆڕانکاری ڕابەرایەتی دەکات و کۆمەڵگاکەی بەرز دەکاتەوە.
+      </p>
+
+      <p class="about-text" data-lang="about_p3">
+        ناوەڕۆکی خوێندنی بەهێز، سادەکراو و متمانەپێکراو دابین دەکەین — خۆڕایانە، چونکە باوەڕمان ئەوەیە زانست مافی هەموو کەسەکەیە نەک پرۆگرامی هەندێک کەس.
+      </p>
+
+      <p class="about-text" data-lang="about_p4">
+        ئەزموونی پەروەردەیی تەواو کارلێکی ڕاستەقینە دروست دەکەین و بە هەموو شانازییەک کار دەکەین بۆ بەهێزکردنی ناسنامە و کولتووری کوردیمان.
+      </p>
+
+      <p class="about-text" data-lang="about_p5">
+        دەست بەدەست مامۆستایان و ڕێکخراوەکان، کار دەکەین بۆ ئەوەی دڵنیا بین کە هیچ خوێندکارێک لە دەرفەتی فێربوون بێبەش نابێت.
+      </p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  © 2026 <span>PPAlend </span> – <span data-lang="footer_rights">هەموو مافەکان پارێزراون</span>
+</footer>
+
+<script src="js/lang.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/env.js"></script>
+<script src="js/supabase-auth.js"></script>
+<script>
+  async function refreshAuthAction() {
+    if (!window.AlendAuth) return;
+    await window.AlendAuth.init();
+    const session = await window.AlendAuth.getSession();
+    const btn = document.getElementById('authActionBtn');
+    if (!btn) return;
+
+    if (session?.user) {
+      btn.textContent = 'Logout';
+      btn.href = '#';
+      btn.onclick = async (e) => {
+        e.preventDefault();
+        await window.AlendAuth.signOut();
+      };
+    } else {
+      btn.textContent = 'Login';
+      btn.href = 'login.html';
+      btn.onclick = null;
+    }
+  }
+
+  function goToCurriculum(curriculum) {
+    const lang = ['ku', 'ba', 'ar'].includes(LangManager.current) ? LangManager.current : 'ku';
+    const route = curriculum === 'arabic'
+      ? 'subjects/menhej/mnarabic.html'
+      : 'subjects/menhej/mnbadini.html';
+    window.location.href = `${route}?lang=${lang}`;
+  }
+
+  function updateThemeIcon() {
+    const icon = document.querySelector('.theme-icon');
+    if (icon) icon.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  }
+
+  document.querySelector('.theme-toggle')?.addEventListener('click', updateThemeIcon);
+  updateThemeIcon();
+
+  document.getElementById('menuToggle')?.addEventListener('click', () => {
+    document.getElementById('siteNav').classList.toggle('open');
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.style.opacity = '1'; });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
+
+  LangManager.init();
+  refreshAuthAction();
+</script>
+</body>
+</html>
