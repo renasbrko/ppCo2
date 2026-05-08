@@ -66,6 +66,7 @@
       color: var(--text);
       min-height: 100vh;
       transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
     }
 
     /* ===== LOGIN SCREEN ===== */
@@ -294,6 +295,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     /* ===== TOP BAR ===== */
@@ -307,12 +309,15 @@
       position: sticky;
       top: 0;
       z-index: 50;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
     .topbar-title h1 { font-size: 1.1rem; font-weight: 800; }
     .topbar-title p { font-size: 0.8rem; color: var(--text-muted); margin-top: 1px; }
 
     .topbar-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .topbar-actions { flex-wrap: wrap; }
 
     .theme-btn {
       background: var(--bg-surface);
@@ -690,6 +695,20 @@
       .main-content { margin-right: 0; }
       .mobile-menu-btn { display: flex !important; }
       .form-grid { grid-template-columns: 1fr; }
+      .topbar {
+        padding: 0.85rem 1rem;
+      }
+      .page {
+        padding: 1rem;
+      }
+      .section-card-body {
+        padding: 1rem;
+      }
+      .section-card-header {
+        padding: 1rem;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
     }
 
     .mobile-menu-btn {
@@ -707,6 +726,7 @@
       color: var(--info);
       text-decoration: none;
       font-size: 0.8rem;
+      word-break: break-word;
     }
 
     .link-cell a:hover { text-decoration: underline; }
@@ -1175,9 +1195,6 @@ CREATE POLICY "auth delete" ON files FOR DELETE USING (true);</pre>
 <script src="js/supabase-auth.js"></script>
 <script>
 // ======= CONFIG =======
-// كلمة المرور تُحفظ كـ hash فقط — لا تظهر أبداً بالنص الواضح في الكود
-// الكلمة الافتراضية: alend2025 (hash أدناه)
-const DEFAULT_PASS_HASH = 'f2b4e3d1a9c7b5e8f0d2a4c6e8b0d2a4c6e8b0d2a4c6e8b0d2a4c6e8b0d2a4c6';
 
 let supabaseClient = null;
 let allFilesData = [];
@@ -1249,9 +1266,6 @@ function checkSupabaseWarning() {
 }
 
 // ======= LOGIN =======
-// كلمة المرور الافتراضية hash (alend2025) — SHA-256
-const DEFAULT_HASH = 'd9a49a56c1126d3e3843bbfa8c3b0161aca678e1be458cb8f56b4869fe3683c8';
-
 async function doLogin() {
   const btn = document.querySelector('#loginScreen .btn-primary');
   btn.disabled = true;
