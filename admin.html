@@ -1225,12 +1225,6 @@
             <input type="text" id="cfgBucket" class="form-input" placeholder="alend-files" value="alend-files">
           </div>
 
-          <div class="form-group">
-            <label class="form-label">كلمة مرور الأدمن الجديدة</label>
-            <input type="password" id="cfgPassword" class="form-input" placeholder="اترك فارغاً للإبقاء على الحالية">
-            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.4rem;">⚠️ كلمة المرور تُحفظ كـ hash فقط — لا تظهر بالنص الواضح في الكود ولا في قاعدة البيانات</div>
-          </div>
-
           <button class="btn btn-primary" onclick="saveSettings()" style="max-width:200px">💾 حفظ الإعدادات</button>
 
           <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border-subtle)">
@@ -1251,9 +1245,9 @@
 
 -- السماح بالقراءة العامة
 ALTER TABLE files ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "public read" ON files FOR SELECT USING (true);
-CREATE POLICY "auth insert" ON files FOR INSERT WITH CHECK (true);
-CREATE POLICY "auth delete" ON files FOR DELETE USING (true);</pre>
+CREATE POLICY "authenticated read files" ON files FOR SELECT TO authenticated USING (true);
+CREATE POLICY "admins insert files" ON files FOR INSERT TO authenticated WITH CHECK (public.is_admin());
+CREATE POLICY "admins delete files" ON files FOR DELETE TO authenticated USING (public.is_admin());</pre>
             <button class="copy-btn" onclick="copySql()" style="margin-top:0.5rem;padding:0.4rem 0.9rem;font-size:0.82rem">📋 نسخ الكود</button>
           </div>
         </div>
@@ -1289,37 +1283,22 @@ let allFilesData = [];
 let deleteTargetId = null;
 let deleteTargetPath = null;
 
-// ======= HASH FUNCTION =======
-async function hashPassword(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
 // ======= SETTINGS =======
 function loadConfig() {
+  const env = window.ALEND_SUPABASE_CONFIG || {};
   return {
-    url: localStorage.getItem('sb_url') || '',
-    key: localStorage.getItem('sb_key') || '',
+    url: env.url || '',
+    key: env.anonKey || '',
     bucket: localStorage.getItem('sb_bucket') || 'alend-files',
-    passHash: localStorage.getItem('admin_pass_hash') || null,
   };
 }
 
 async function saveSettings() {
-  const url = document.getElementById('cfgUrl').value.trim();
-  const key = document.getElementById('cfgKey').value.trim();
   const bucket = document.getElementById('cfgBucket').value.trim();
-  const pass = document.getElementById('cfgPassword').value.trim();
+  const cfg = loadConfig();
+  if (!cfg.url || !cfg.key) { showToast('أدخل إعداد Supabase في js/env.js أولاً', 'error'); return; }
 
-  if (!url || !key) { showToast('أدخل الـ URL والـ Key', 'error'); return; }
-
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
   localStorage.setItem('sb_bucket', bucket || 'alend-files');
-  if (pass) {
-    const h = await hashPassword(pass);
-    localStorage.setItem('admin_pass_hash', h);
-  }
 
   await initSupabase();
   showToast('تم حفظ الإعدادات بنجاح ✓', 'success');
@@ -1787,10 +1766,16 @@ function renderAllFilesTable(files) {
       <td style="color:var(--text-muted);font-size:0.82rem">${formatSize(f.size_bytes || 0)}</td>
       <td style="color:var(--text-muted);font-size:0.82rem">${formatDate(f.created_at)}</td>
       <td class="link-cell"><a href="${escHtml(f.url)}" target="_blank">فتح ↗</a></td>
-      <td><button class="btn btn-danger" onclick="openDeleteModal('${f.id}', '${escHtml(f.path || '')}', '${escHtml(f.title || f.name)}')">🗑️</button></td>
+      <td><button class="btn btn-danger js-delete-file" data-id="${escHtml(f.id)}" data-path="${escHtml(f.path || '')}" data-name="${escHtml(f.title || f.name)}">🗑️</button></td>
     </tr>
   `).join('');
 }
+
+document.getElementById('allFilesBody').addEventListener('click', (event) => {
+  const btn = event.target.closest('.js-delete-file');
+  if (!btn) return;
+  openDeleteModal(btn.dataset.id || '', btn.dataset.path || '', btn.dataset.name || '');
+});
 
 // ======= DELETE =======
 function openDeleteModal(id, path, name) {
@@ -1832,13 +1817,12 @@ async function confirmDelete() {
 
 // ======= SETTINGS FORM =======
 function loadSettingsForm() {
-  const env = window.ALEND_SUPABASE_CONFIG || {};
   const cfg = loadConfig();
-  const url = cfg.url || env.url || '';
-  const key = cfg.key || env.anonKey || '';
-  if (document.getElementById('cfgUrl')) document.getElementById('cfgUrl').value = url;
-  if (document.getElementById('cfgKey')) document.getElementById('cfgKey').value = key;
+  if (document.getElementById('cfgUrl')) document.getElementById('cfgUrl').value = cfg.url;
+  if (document.getElementById('cfgKey')) document.getElementById('cfgKey').value = cfg.key;
   if (document.getElementById('cfgBucket')) document.getElementById('cfgBucket').value = cfg.bucket || 'alend-files';
+  if (document.getElementById('cfgUrl')) document.getElementById('cfgUrl').setAttribute('readonly', 'readonly');
+  if (document.getElementById('cfgKey')) document.getElementById('cfgKey').setAttribute('readonly', 'readonly');
 }
 
 let adminUsersCache = [];
@@ -1980,14 +1964,24 @@ function typeLabel(v) {
 }
 
 function escHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
 }
 
 function showToast(msg, type = 'info') {
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');
   t.className = `toast ${type}`;
-  t.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span><span>${msg}</span>`;
+  const icon = document.createElement('span');
+  icon.textContent = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+  const text = document.createElement('span');
+  text.textContent = String(msg || '');
+  t.appendChild(icon);
+  t.appendChild(text);
   c.appendChild(t);
   setTimeout(() => t.remove(), 3200);
 }
@@ -2008,9 +2002,9 @@ function copySql() {
 );
 
 ALTER TABLE files ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "public read" ON files FOR SELECT USING (true);
-CREATE POLICY "auth insert" ON files FOR INSERT WITH CHECK (true);
-CREATE POLICY "auth delete" ON files FOR DELETE USING (true);`;
+CREATE POLICY "authenticated read files" ON files FOR SELECT TO authenticated USING (true);
+CREATE POLICY "admins insert files" ON files FOR INSERT TO authenticated WITH CHECK (public.is_admin());
+CREATE POLICY "admins delete files" ON files FOR DELETE TO authenticated USING (public.is_admin());`;
 
   navigator.clipboard.writeText(sql).then(() => showToast('تم نسخ الكود ✓', 'success'));
 }

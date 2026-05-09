@@ -247,64 +247,68 @@
 <body>
   <main class="card">
     <div class="card-head">
+      <div style="display:flex;justify-content:flex-start;margin-bottom:0.25rem;gap:0.4rem;flex-wrap:wrap">
+        <button type="button" id="langKu" class="auth-tab" style="grid-column:unset;width:auto;padding:0.35rem 0.6rem;font-size:0.78rem">کوردی</button>
+        <button type="button" id="langAr" class="auth-tab" style="grid-column:unset;width:auto;padding:0.35rem 0.6rem;font-size:0.78rem">العربية</button>
+      </div>
       <div class="logo-wrap">
         <img src="logo.png" alt="ئەلەند" class="logo">
       </div>
-      <p class="welcome">بەخێربێیتەوە 👋</p>
-      <p class="subtitle">پلاتفۆرمی پەروەردەیی ئەلند — چوونەژوورەوە یان تۆمارکردن بە ئیمەیڵ و تێپەڕەوشە.</p>
+      <p class="welcome" data-i18n="welcome">بەخێربێیتەوە</p>
+      <p class="subtitle" data-i18n="subtitle">پلاتفۆرمی پەروەردەیی ئەلند — چوونەژوورەوە یان تۆمارکردن بە ئیمەیڵ و تێپەڕەوشە.</p>
     </div>
 
     <div class="auth-tabs" role="tablist">
-      <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true">چوونەژوورەوە</button>
-      <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false">تۆمارکردن</button>
+      <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" data-i18n="tab_login">چوونەژوورەوە</button>
+      <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false" data-i18n="tab_register">تۆمارکردن</button>
     </div>
 
     <div id="panelLogin" class="panel active" role="tabpanel">
       <form id="formLogin" novalidate>
         <div class="field">
-          <label for="loginEmail">ئیمەیڵ</label>
-          <input id="loginEmail" type="email" autocomplete="email" required placeholder="name@example.com">
+          <label for="loginEmail" data-i18n="label_email">ئیمەیڵ</label>
+          <input id="loginEmail" type="email" autocomplete="email" required placeholder="name@example.com" data-i18n-placeholder="ph_email">
         </div>
         <div class="field">
-          <label for="loginPassword">تێپەڕەوشە</label>
-          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+          <label for="loginPassword" data-i18n="label_password">تێپەڕەوشە</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••" data-i18n-placeholder="ph_password">
         </div>
-        <button type="submit" class="btn" id="btnLogin">چوونەژوورەوە</button>
+        <button type="submit" class="btn" id="btnLogin" data-i18n="btn_login">چوونەژوورەوە</button>
       </form>
     </div>
 
     <div id="panelRegister" class="panel" role="tabpanel" hidden>
       <form id="formRegister" novalidate>
         <div class="field">
-          <label for="regName">ناوی تەواو</label>
-          <input id="regName" type="text" autocomplete="name" required placeholder="ناوی تەواو" minlength="2">
+          <label for="regName" data-i18n="label_fullname">ناوی تەواو</label>
+          <input id="regName" type="text" autocomplete="name" required placeholder="ناوی تەواو" minlength="2" data-i18n-placeholder="ph_fullname">
         </div>
         <div class="field">
-          <label for="regEmail">ئیمەیڵ</label>
-          <input id="regEmail" type="email" autocomplete="email" required placeholder="name@example.com">
+          <label for="regEmail" data-i18n="label_email">ئیمەیڵ</label>
+          <input id="regEmail" type="email" autocomplete="email" required placeholder="name@example.com" data-i18n-placeholder="ph_email">
         </div>
         <div class="field">
-          <label for="regPhone">ژمارەی مۆبایل</label>
-          <input id="regPhone" type="tel" autocomplete="tel" required placeholder="+9647XXXXXXXX">
-          <p class="field-hint">10–15 ژمارە؛ دەتوانێت + لە سەرەتادا بێت.</p>
+          <label for="regPhone" data-i18n="label_phone">ژمارەی مۆبایل</label>
+          <input id="regPhone" type="tel" autocomplete="tel" required placeholder="+9647XXXXXXXX" data-i18n-placeholder="ph_phone">
+          <p class="field-hint" data-i18n="hint_phone">10–15 ژمارە؛ دەتوانێت + لە سەرەتادا بێت.</p>
         </div>
         <div class="field">
-          <label for="regPassword">تێپەڕەوشە</label>
-          <input id="regPassword" type="password" autocomplete="new-password" required placeholder="••••••••">
-          <p class="field-hint">لانیکەم 8 پیت، پیتی گەورە و بچووک، و ژمارە.</p>
+          <label for="regPassword" data-i18n="label_password">تێپەڕەوشە</label>
+          <input id="regPassword" type="password" autocomplete="new-password" required placeholder="••••••••" data-i18n-placeholder="ph_password">
+          <p class="field-hint" data-i18n="hint_password">لانیکەم 8 پیت، پیتی گەورە و بچووک، و ژمارە.</p>
         </div>
         <div class="field">
-          <label for="regPassword2">دووبارەکردنەوەی تێپەڕەوشە</label>
-          <input id="regPassword2" type="password" autocomplete="new-password" required placeholder="••••••••">
+          <label for="regPassword2" data-i18n="label_password2">دووبارەکردنەوەی تێپەڕەوشە</label>
+          <input id="regPassword2" type="password" autocomplete="new-password" required placeholder="••••••••" data-i18n-placeholder="ph_password">
         </div>
-        <button type="submit" class="btn" id="btnRegister">تۆمارکردن</button>
+        <button type="submit" class="btn" id="btnRegister" data-i18n="btn_register">تۆمارکردن</button>
       </form>
     </div>
 
     <div class="error" id="authError" aria-live="polite"></div>
     <div class="success" id="authSuccess" aria-live="polite"></div>
-    <p class="hint">ناوەڕۆکی پەروەردەیی تەنها دوای چوونەژوورەوە دەبێتە بەردەست.</p>
-    <p class="back-home"><a href="index.html">← گەڕانەوە بۆ سەرەکی</a></p>
+    <p class="hint" data-i18n="hint_access">ناوەڕۆکی پەروەردەیی تەنها دوای چوونەژوورەوە دەبێتە بەردەست.</p>
+    <p class="back-home"><a href="index.html" data-i18n="back_home">← گەڕانەوە بۆ سەرەکی</a></p>
   </main>
 
   <script src="js/env.js"></script>
@@ -317,6 +321,82 @@
       const tabRegister = document.getElementById("tabRegister");
       const panelLogin = document.getElementById("panelLogin");
       const panelRegister = document.getElementById("panelRegister");
+      const langKu = document.getElementById("langKu");
+      const langAr = document.getElementById("langAr");
+
+      const i18n = {
+        ku: {
+          welcome: "بەخێربێیتەوە",
+          subtitle: "پلاتفۆرمی پەروەردەیی ئەلند — چوونەژوورەوە یان تۆمارکردن بە ئیمەیڵ و تێپەڕەوشە.",
+          tab_login: "چوونەژوورەوە",
+          tab_register: "تۆمارکردن",
+          label_email: "ئیمەیڵ",
+          label_password: "تێپەڕەوشە",
+          label_fullname: "ناوی تەواو",
+          label_phone: "ژمارەی مۆبایل",
+          label_password2: "دووبارەکردنەوەی تێپەڕەوشە",
+          btn_login: "چوونەژوورەوە",
+          btn_register: "تۆمارکردن",
+          ph_email: "name@example.com",
+          ph_password: "••••••••",
+          ph_fullname: "ناوی تەواو",
+          ph_phone: "+9647XXXXXXXX",
+          hint_phone: "10–15 ژمارە؛ دەتوانێت + لە سەرەتادا بێت.",
+          hint_password: "لانیکەم 8 پیت، پیتی گەورە و بچووک، و ژمارە.",
+          hint_access: "ناوەڕۆکی پەروەردەیی تەنها دوای چوونەژوورەوە دەبێتە بەردەست.",
+          back_home: "← گەڕانەوە بۆ سەرەکی",
+          msg_need_config: "ڕێکخستنی Supabase تەواو نییە. تکایە `js/env.js` ڕاست بکە.",
+          msg_password_mismatch: "تێپەڕەوشەکان یەک ناگرنەوە.",
+          msg_register_ok: "تۆمارکردن سەرکەوتوو بوو. ئێستا دەتوانیت بچیتە ژوورەوە."
+        },
+        ar: {
+          welcome: "مرحباً بك",
+          subtitle: "منصة ألند التعليمية — تسجيل الدخول أو إنشاء حساب بالبريد وكلمة المرور.",
+          tab_login: "تسجيل الدخول",
+          tab_register: "إنشاء حساب",
+          label_email: "البريد الإلكتروني",
+          label_password: "كلمة المرور",
+          label_fullname: "الاسم الكامل",
+          label_phone: "رقم الهاتف",
+          label_password2: "تأكيد كلمة المرور",
+          btn_login: "تسجيل الدخول",
+          btn_register: "إنشاء حساب",
+          ph_email: "name@example.com",
+          ph_password: "••••••••",
+          ph_fullname: "الاسم الكامل",
+          ph_phone: "+9647XXXXXXXX",
+          hint_phone: "10–15 رقمًا ويمكن أن يبدأ بـ +.",
+          hint_password: "8 أحرف على الأقل + حرف كبير وصغير + رقم.",
+          hint_access: "المحتوى التعليمي يصبح متاحاً بعد تسجيل الدخول.",
+          back_home: "← العودة إلى الرئيسية",
+          msg_need_config: "إعدادات Supabase غير مكتملة. عدّل `js/env.js` أولاً.",
+          msg_password_mismatch: "كلمتا المرور غير متطابقتين.",
+          msg_register_ok: "تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن."
+        }
+      };
+
+      function currentLang() {
+        const raw = (localStorage.getItem("alend_lang") || "ku").toLowerCase();
+        return raw === "ar" ? "ar" : "ku";
+      }
+
+      function setLang(lang) {
+        const v = lang === "ar" ? "ar" : "ku";
+        localStorage.setItem("alend_lang", v);
+        const tr = i18n[v];
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const k = el.getAttribute("data-i18n");
+          if (k && tr[k]) el.textContent = tr[k];
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+          const k = el.getAttribute("data-i18n-placeholder");
+          if (k && tr[k]) el.setAttribute("placeholder", tr[k]);
+        });
+        langKu.classList.toggle("active", v === "ku");
+        langAr.classList.toggle("active", v === "ar");
+        document.documentElement.lang = v === "ar" ? "ar" : "ku";
+        document.documentElement.dir = "rtl";
+      }
 
       function clearMessages() {
         errEl.textContent = "";
@@ -336,44 +416,20 @@
 
       tabLogin.addEventListener("click", () => setMode(true));
       tabRegister.addEventListener("click", () => setMode(false));
+      langKu.addEventListener("click", () => setLang("ku"));
+      langAr.addEventListener("click", () => setLang("ar"));
 
       async function boot() {
-        const hadAuthHash = /access_token=|type=signup|type=recovery/i.test(
-          window.location.hash || ""
-        );
-        await window.AlendAuth.init();
-        const params = new URLSearchParams(window.location.search);
-
-        if (params.get("reason") === "unverified") {
-          errEl.textContent =
-            "تکایە سەرەتا ئیمەیڵەکەت پشتڕاست بکەرەوە؛ دواتر بچۆرە ژوورەوە.";
-          window.history.replaceState({}, "", window.location.pathname);
+        setLang(currentLang());
+        try {
+          await window.AlendAuth.init();
+        } catch (e) {
+          errEl.textContent = (e && e.message) || i18n[currentLang()].msg_need_config;
+          return;
         }
 
         const session = await window.AlendAuth.getSession();
         if (session?.user) {
-          if (!window.AlendAuth.isEmailVerified(session.user)) {
-            await window.AlendAuth.signOutLocal();
-            errEl.textContent =
-              "هەژمارەکەت هێشتا پشتڕاست نەکراوەتەوە. سەیری سندوقی ئیمەیڵەکەت بکە.";
-            return;
-          }
-
-          if (hadAuthHash) {
-            okEl.textContent =
-              "ئیمەیڵەکەت بە سەرکەوتووی پشتڕاست کرا. دەچیتە ناو پلاتفۆرم...";
-            window.history.replaceState(
-              {},
-              "",
-              window.location.pathname + window.location.search
-            );
-            const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
-            setTimeout(() => {
-              window.location.href = returnTo;
-            }, 1100);
-            return;
-          }
-
           const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
           window.location.href = returnTo;
         }
@@ -386,6 +442,8 @@
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
         btn.disabled = true;
+        const prevText = btn.textContent;
+        btn.textContent = "...";
         try {
           await window.AlendAuth.signInWithEmailPassword(email, password);
           const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
@@ -394,6 +452,7 @@
           errEl.textContent = error.message || "هەڵە.";
         } finally {
           btn.disabled = false;
+          btn.textContent = prevText;
         }
       });
 
@@ -408,11 +467,13 @@
         const password2 = document.getElementById("regPassword2").value;
 
         if (password !== password2) {
-          errEl.textContent = "تێپەڕەوشەکان یەک ناگرنەوە.";
+          errEl.textContent = i18n[currentLang()].msg_password_mismatch;
           return;
         }
 
         btn.disabled = true;
+        const prevText = btn.textContent;
+        btn.textContent = "...";
         try {
           const data = await window.AlendAuth.signUpWithEmail({
             fullName,
@@ -427,13 +488,13 @@
             return;
           }
 
-          okEl.textContent =
-            "تۆمارکردن سەرکەوتوو بوو. ئەگەر پشتڕاستکردنەوەی ئیمەیڵ چالاک بێت، تکایە لینکی نێرراو بەکاربهێنە، پاشان بچۆرە ژوورەوە.";
+          okEl.textContent = i18n[currentLang()].msg_register_ok;
           setMode(true);
         } catch (error) {
           errEl.textContent = error.message || "هەڵە.";
         } finally {
           btn.disabled = false;
+          btn.textContent = prevText;
         }
       });
 
