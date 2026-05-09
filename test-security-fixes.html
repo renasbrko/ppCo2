@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Fixes Test | PPAlend</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.6; }
+    .test-section { margin: 2rem 0; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+    .result { margin: 1rem 0; padding: 0.5rem; border-radius: 4px; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    .warning { background: #fff3cd; color: #856404; }
+    button { padding: 0.5rem 1rem; margin: 0.5rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    input { padding: 0.5rem; margin: 0.5rem; border: 1px solid #ccc; border-radius: 4px; width: 300px; }
+    .test-input { margin: 1rem 0; }
+    .xss-test { background: #ffebee; padding: 1rem; border-radius: 4px; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Security Fixes Verification</h1>
+  
+  <div class="test-section">
+    <h2>1. XSS Protection Test</h2>
+    <div class="test-input">
+      <label>Test XSS injection:</label>
+      <input type="text" id="xssInput" placeholder="&lt;script&gt;alert('XSS')&lt;/script&gt;" style="width: 400px;">
+      <button onclick="testXSSProtection()">Test XSS</button>
+    </div>
+    <div id="xssResult"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. YouTube URL Validation Test</h2>
+    <div class="test-input">
+      <label>Test malicious URLs:</label>
+      <input type="text" id="maliciousUrl" placeholder="javascript:alert('XSS')" style="width: 400px;">
+      <button onclick="testYouTubeValidation()">Test URL Validation</button>
+    </div>
+    <div id="urlResult"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Safe DOM Rendering Test</h2>
+    <div class="test-input">
+      <label>Test HTML injection:</label>
+      <input type="text" id="htmlInjection" placeholder="&lt;img src=x onerror=alert('XSS')&gt;" style="width: 400px;">
+      <button onclick="testSafeDOM()">Test Safe DOM</button>
+    </div>
+    <div id="domResult"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>4. CSP Headers Test</h2>
+    <button onclick="testCSPHeaders()">Test CSP Headers</button>
+    <div id="cspResult"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>5. Link Security Test</h2>
+    <button onclick="testLinkSecurity()">Test Link Security</button>
+    <div id="linkResult"></div>
+  </div>
+
+  <script src="js/safe-dom.js"></script>
+  <script>
+    function showResult(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      el.innerHTML = `<div class="result ${type}">${message}</div>`;
+    }
+
+    function testXSSProtection() {
+      const input = document.getElementById('xssInput').value;
+      
+      // Test if XSS is properly escaped
+      const escaped = SafeDOM.escapeHtml(input);
+      const containsScript = escaped.toLowerCase().includes('<script>');
+      const containsImg = escaped.toLowerCase().includes('<img');
+      
+      if (containsScript || containsImg) {
+        showResult('xssResult', '❌ XSS vulnerability detected - HTML not properly escaped', 'error');
+      } else {
+        showResult('xssResult', '✅ XSS protection working - HTML properly escaped', 'success');
+      }
+    }
+
+    function testYouTubeValidation() {
+      const url = document.getElementById('maliciousUrl').value;
+      const validUrl = SafeDOM.validateYouTubeUrl(url);
+      
+      if (validUrl) {
+        showResult('urlResult', '❌ Security vulnerability - malicious URL accepted', 'error');
+      } else {
+        showResult('urlResult', '✅ URL validation working - malicious URL rejected', 'success');
+      }
+      
+      // Test valid YouTube URLs
+      const validUrls = [
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        'https://youtu.be/dQw4w9WgXcQ'
+      ];
+      
+      let allValid = true;
+      validUrls.forEach(testUrl => {
+        const isValid = SafeDOM.validateYouTubeUrl(testUrl);
+        if (!isValid) allValid = false;
+      });
+      
+      if (allValid) {
+        showResult('urlResult', '✅ All valid YouTube URLs accepted', 'success');
+      } else {
+        showResult('urlResult', '⚠️ Some valid URLs rejected - check validation', 'warning');
+      }
+    }
+
+    function testSafeDOM() {
+      const input = document.getElementById('htmlInjection').value;
+      
+      // Test if safe DOM utilities are available
+      if (typeof SafeDOM === 'undefined') {
+        showResult('domResult', '❌ SafeDOM utilities not loaded', 'error');
+        return;
+      }
+      
+      // Test safe DOM creation
+      const testDiv = SafeDOM.createElementWithText('div', input);
+      const hasXSS = testDiv.innerHTML.toLowerCase().includes('<script>') || 
+                   testDiv.innerHTML.toLowerCase().includes('<img') ||
+                   testDiv.innerHTML.toLowerCase().includes('onerror=');
+      
+      if (hasXSS) {
+        showResult('domResult', '❌ DOM injection vulnerability detected', 'error');
+      } else {
+        showResult('domResult', '✅ Safe DOM rendering working - no injection', 'success');
+      }
+    }
+
+    function testCSPHeaders() {
+      fetch(window.location.href, { method: 'HEAD' })
+        .then(response => {
+          const csp = response.headers.get('Content-Security-Policy');
+          
+          if (csp) {
+            const hasDefaultSrc = csp.includes("default-src 'self'");
+            const hasScriptSrc = csp.includes("script-src 'self'");
+            const hasStyleSrc = csp.includes("style-src 'self'");
+            const hasImgSrcData = csp.includes("img-src 'self' data:");
+            
+            if (hasDefaultSrc && hasScriptSrc && hasStyleSrc && hasImgSrcData) {
+              showResult('cspResult', '✅ CSP headers properly configured', 'success');
+            } else {
+              showResult('cspResult', '⚠️ CSP headers present but may need improvement', 'warning');
+            }
+          } else {
+            showResult('cspResult', '❌ CSP headers missing', 'error');
+          }
+        })
+        .catch(error => {
+          showResult('cspResult', `❌ Error testing CSP: ${error.message}`, 'error');
+        });
+    }
+
+    function testLinkSecurity() {
+      // Test if SafeDOM.createSafeLink adds proper attributes
+      if (typeof SafeDOM === 'undefined') {
+        showResult('linkResult', '❌ SafeDOM utilities not loaded', 'error');
+        return;
+      }
+      
+      const testLink = SafeDOM.createSafeLink('https://example.com', 'Test Link', '_blank');
+      const hasRel = testLink.rel.includes('noopener');
+      const hasNoreferrer = testLink.rel.includes('noreferrer');
+      const hasTarget = testLink.target === '_blank';
+      
+      if (hasRel && hasNoreferrer && hasTarget) {
+        showResult('linkResult', '✅ Link security working - proper attributes added', 'success');
+      } else {
+        showResult('linkResult', '❌ Link security vulnerability detected', 'error');
+      }
+    }
+
+    // Auto-run tests
+    window.addEventListener('load', () => {
+      showResult('xssResult', 'ℹ️ Ready to test XSS protection', 'info');
+      showResult('urlResult', 'ℹ️ Ready to test URL validation', 'info');
+      showResult('domResult', 'ℹ️ Ready to test safe DOM rendering', 'info');
+      showResult('cspResult', 'ℹ️ Ready to test CSP headers', 'info');
+      showResult('linkResult', 'ℹ️ Ready to test link security', 'info');
+    });
+  </script>
+</body>
+</html>

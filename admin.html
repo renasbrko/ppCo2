@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/safe-dom.js"></script>
+<script src="js/upload-utils.js"></script>
 
   <style>
     /* ===== VARIABLES ===== */
@@ -875,7 +877,7 @@
       </div>
       <div class="topbar-actions">
         <button class="theme-btn" onclick="toggleTheme()" title="تغيير الثيم" id="themeBtn">🌙</button>
-        <a href="index.html" target="_blank" class="btn btn-primary" style="width:auto;padding:0.5rem 1rem;font-size:0.85rem">
+        <a href="index.html" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:auto;padding:0.5rem 1rem;font-size:0.85rem">
           🌐 الموقع
         </a>
       </div>
@@ -1350,38 +1352,30 @@ async function doLogin() {
   emailEl.disabled = true;
   passEl.disabled = true;
   btn.textContent = '...';
+  
   try {
     await window.AlendAuth.init();
     await window.AlendAuth.signInWithEmailPassword(emailEl.value, passEl.value, {
       securityContext: "admin"
     });
-    const session = await window.AlendAuth.getSession();
-    if (!session?.user) throw new Error('فشل الجلسة');
-
-    const isAdmin = await window.AlendAuth.isUserAdmin(session.user);
-    if (!isAdmin) {
-      await window.AlendAuth.reportSecurityEvent({
-        event_type: 'unauthorized_admin_access',
-        email_attempt: session.user.email,
-        success: false
-      }, session.access_token);
-      await window.AlendAuth.signOutLocal();
-      throw new Error('هذا الحساب ليس مسؤولاً.');
+    
+    const hasAccess = await verifyAdminAccess();
+    if (!hasAccess) {
+      showLoginScreen();
+      return;
     }
 
     await window.AlendAuth.reportSecurityEvent({
       event_type: 'admin_login_success',
-      email_attempt: session.user.email,
+      email_attempt: emailEl.value,
       success: true
-    }, session.access_token);
+    }, (await window.AlendAuth.getSession())?.access_token);
 
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('adminLayout').classList.remove('hidden');
-    document.getElementById('loginError').style.display = 'none';
+    showAdminLayout();
     await initSupabase();
     loadSettingsForm();
     checkSupabaseWarning();
-    updateThemeBtn();
+    startAuthVerification(); // Start continuous verification
   } catch (error) {
     const msg = (error && error.message) || 'فشل تسجيل الدخول';
     document.getElementById('loginError').style.display = 'block';
@@ -1402,9 +1396,14 @@ document.getElementById('adminEmailInput')?.addEventListener('keydown', e => {
 });
 
 function doLogout() {
+  // Clear auth verification interval
+  if (adminAuthCheckInterval) {
+    clearInterval(adminAuthCheckInterval);
+    adminAuthCheckInterval = null;
+  }
+  
   window.AlendAuth?.signOut();
-  document.getElementById('adminLayout').classList.add('hidden');
-  document.getElementById('loginScreen').style.display = 'flex';
+  showLoginScreen();
   document.getElementById('passwordInput').value = '';
   const ae = document.getElementById('adminEmailInput');
   if (ae) ae.value = '';
@@ -1485,13 +1484,20 @@ const SUBJECTS = {
 function updateSubjects() {
   const curr = document.getElementById('selCurriculum').value;
   const sel = document.getElementById('selSubject');
-  sel.innerHTML = '<option value="">-- اختر المادة --</option>';
+  
+  // Clear existing options safely
+  SafeDOM.clearElementContent(sel);
+  
   if (SUBJECTS[curr]) {
+    // Add default option
+    sel.appendChild(SafeDOM.createSafeOption('', '-- اختر المادة --'));
+    // Add subject options
     SUBJECTS[curr].forEach(s => {
-      const o = document.createElement('option');
-      o.value = s.v; o.textContent = s.l;
-      sel.appendChild(o);
+      sel.appendChild(SafeDOM.createSafeOption(s.v, s.l));
     });
+  } else {
+    // Add placeholder option
+    sel.appendChild(SafeDOM.createSafeOption('', '-- اختر المنهج أولاً --'));
   }
 }
 
@@ -1503,11 +1509,15 @@ let youtubeFinalUrl = '';
 function onFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > MAX_FILE_SIZE) {
-    showToast('حجم الملف يتجاوز 500MB. اختر ملفاً أصغر.', 'error');
+  
+  // Validate file using UploadUtils
+  const validation = UploadUtils.validateFile(file);
+  if (!validation.valid) {
+    showToast(validation.error, 'error');
     input.value = '';
     return;
   }
+  
   isYoutubeMode = false;
   youtubeFinalUrl = '';
   document.getElementById('youtubePreview').style.display = 'none';
@@ -1519,18 +1529,19 @@ function onFileSelect(input) {
 
 function setYoutubeMode() {
   const val = document.getElementById('youtubeUrl').value.trim();
-  if (!val || (!val.includes('youtube.com') && !val.includes('youtu.be'))) {
+  const validUrl = SafeDOM.validateYouTubeUrl(val);
+  
+  if (!validUrl) {
     showToast('أدخل رابط يوتيوب صحيح', 'error');
     return;
   }
+  
   isYoutubeMode = true;
-  youtubeFinalUrl = val;
-  document.getElementById('ytPreviewUrl').textContent = val;
+  youtubeFinalUrl = validUrl;
+  document.getElementById('ytPreviewUrl').textContent = validUrl;
   const prev = document.getElementById('youtubePreview');
   prev.style.display = 'flex';
-  // clear file input
-  document.getElementById('fileInput').value = '';
-  document.getElementById('filePreview').classList.remove('show');
+
   showToast('تم تحديد رابط اليوتيوب ✓', 'success');
 }
 
@@ -1564,6 +1575,14 @@ dropZone.addEventListener('drop', e => {
 
 // ======= UPLOAD =======
 async function doUpload() {
+  // Verify admin session before allowing upload
+  const hasAccess = await verifyAdminAccess();
+  if (!hasAccess) {
+    showToast('غير مصرح لك بالوصول إلى هذه الوظيفة', 'error');
+    showLoginScreen();
+    return;
+  }
+
   if (!supabaseClient) { showToast('يجب إعداد Supabase أولاً', 'error'); return; }
 
   const file = document.getElementById('fileInput').files[0];
@@ -1579,9 +1598,22 @@ async function doUpload() {
   if (!subject) { showToast('اختر المادة', 'error'); return; }
   if (!type) { showToast('اختر نوع المحتوى', 'error'); return; }
 
+  let fileValidation = null;
+  if (!isYoutubeMode && file) {
+    fileValidation = UploadUtils.validateFile(file);
+    if (!fileValidation.valid) {
+      showToast(fileValidation.error, 'error');
+      return;
+    }
+  }
+
   const btn = document.getElementById('uploadBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> جاري الرفع...';
+  SafeDOM.clearElementContent(btn);
+  const spinner = document.createElement('span');
+  spinner.className = 'spinner';
+  btn.appendChild(spinner);
+  btn.appendChild(document.createTextNode(' جاري الرفع...'));
 
   const progressWrap = document.getElementById('progressWrap');
   const progressBar = document.getElementById('progressBar');
@@ -1593,54 +1625,61 @@ async function doUpload() {
   try {
     const cfg = loadConfig();
     let publicUrl = '';
+    let filePath = '';
+    let fileHash = '';
 
     if (isYoutubeMode) {
-      // YouTube link — save directly, no storage upload
       publicUrl = youtubeFinalUrl;
       progressBar.style.width = '70%';
     } else {
-      // File upload
+      fileHash = await UploadUtils.generateFileHash(file);
+      const duplicate = await UploadUtils.checkDuplicate(supabaseClient, fileHash);
+      
+      if (duplicate) {
+        showToast('هذا الملف موجود بالفعل', 'error');
+        return;
+      }
+
       const timestamp = Date.now();
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const path = `${curriculum}/${subject}/${type}/${timestamp}_${safeName}`;
+      filePath = UploadUtils.generateFilePath(curriculum, subject, type, file.name, timestamp);
 
       progressBar.style.width = '30%';
       progressText.textContent = 'جاري رفع الملف... (قد يأخذ وقتاً للملفات الكبيرة)';
 
-      const { data: storageData, error: storageError } = await supabaseClient
-        .storage
-        .from(cfg.bucket)
-        .upload(path, file, { cacheControl: '3600', upsert: false });
+      const uploadResult = await UploadUtils.uploadWithRetry(
+        supabaseClient, 
+        cfg.bucket, 
+        filePath, 
+        file
+      );
 
-      if (storageError) {
-        // Helpful bucket error message
-        if (storageError.message?.includes('Bucket not found') || storageError.statusCode === 400) {
-          throw new Error(`Bucket "${cfg.bucket}" غير موجود في Supabase. اذهب لـ Storage في Supabase وأنشئ bucket اسمه "${cfg.bucket}" وفعّل "Public"`);
-        }
-        throw storageError;
+      if (!uploadResult.success) {
+        throw uploadResult.error;
       }
 
       progressBar.style.width = '70%';
       progressText.textContent = 'جاري حفظ البيانات...';
-
-      const { data: urlData } = supabaseClient.storage.from(cfg.bucket).getPublicUrl(path);
-      publicUrl = urlData.publicUrl;
+      publicUrl = uploadResult.data.publicUrl;
     }
 
-    // Save to DB
+    const dbRecord = UploadUtils.handleUploadComplete(
+      { success: true, data: { publicUrl } },
+      filePath,
+      file ? file.name : 'YouTube Video',
+      title,
+      notes,
+      curriculum,
+      subject,
+      type
+    );
+
+    if (fileHash) {
+      dbRecord.file_hash = fileHash;
+    }
+
     const { error: dbError } = await supabaseClient
       .from('files')
-      .insert({
-        name: isYoutubeMode ? (title || 'YouTube Video') : file.name,
-        title: title || (isYoutubeMode ? 'YouTube Video' : file.name),
-        notes: notes || null,
-        curriculum,
-        subject,
-        type,
-        url: publicUrl,
-        path: isYoutubeMode ? null : `${curriculum}/${subject}/${type}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`,
-        size_bytes: isYoutubeMode ? 0 : file.size,
-      });
+      .insert(dbRecord);
 
     if (dbError) throw dbError;
 
@@ -1652,14 +1691,17 @@ async function doUpload() {
     setTimeout(() => {
       clearFile(); clearYoutube();
       document.getElementById('selCurriculum').value = '';
-      document.getElementById('selSubject').innerHTML = '<option value="">-- اختر المنهج أولاً --</option>';
+      const selSubject = document.getElementById('selSubject');
+      SafeDOM.clearElementContent(selSubject);
+      selSubject.appendChild(SafeDOM.createSafeOption('', '-- اختر المنهج أولاً --'));
       document.getElementById('selType').value = '';
       document.getElementById('inputTitle').value = '';
       document.getElementById('inputNotes').value = '';
       progressWrap.classList.remove('show');
       progressBar.style.width = '0%';
       btn.disabled = false;
-      btn.innerHTML = '<span>رفع الملف</span>';
+      SafeDOM.clearElementContent(btn);
+      btn.appendChild(document.createTextNode('رفع الملف'));
     }, 1500);
 
     loadDashboard();
@@ -1669,7 +1711,8 @@ async function doUpload() {
     showToast('خطأ: ' + (err.message || 'تحقق من إعدادات Supabase'), 'error');
     progressWrap.classList.remove('show');
     btn.disabled = false;
-    btn.innerHTML = '<span>رفع الملف</span>';
+    SafeDOM.clearElementContent(btn);
+    btn.appendChild(document.createTextNode('رفع الملف'));
   }
 }
 
@@ -1723,19 +1766,28 @@ async function updateStats(data) {
 // ======= RENDER TABLES =======
 function renderRecentTable(files) {
   const tbody = document.getElementById('recentTableBody');
+  
+  // Clear existing content safely
+  SafeDOM.clearElementContent(tbody);
+  
   if (!files.length) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملفات بعد</p></div></td></tr>';
+    const emptyRow = SafeDOM.createSafeTableRow([
+      `<td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملفات بعد</p></div></td>`
+    ]);
+    tbody.appendChild(emptyRow);
     return;
   }
-  tbody.innerHTML = files.map(f => `
-    <tr>
-      <td><div class="file-name-cell"><span>📄</span><span class="file-name-text">${escHtml(f.title || f.name)}</span></div></td>
-      <td><span class="badge badge-curriculum">${f.curriculum === 'badini' ? 'بادينی' : 'عربي'}</span></td>
-      <td>${subjectLabel(f.subject)}</td>
-      <td><span class="badge badge-type">${typeLabel(f.type)}</span></td>
-      <td style="color:var(--text-muted);font-size:0.82rem">${formatDate(f.created_at)}</td>
-    </tr>
-  `).join('');
+  
+  files.forEach(f => {
+    const row = SafeDOM.createSafeTableRow([
+      `<td><div class="file-name-cell"><span>📄</span><span class="file-name-text">${SafeDOM.escapeHtml(f.title || f.name)}</span></div></td>`,
+      `<td><span class="badge badge-curriculum">${f.curriculum === 'badini' ? 'بادينی' : 'عربي'}</span></td>`,
+      `<td>${subjectLabel(f.subject)}</td>`,
+      `<td><span class="badge badge-type">${typeLabel(f.type)}</span></td>`,
+      `<td style="color:var(--text-muted);font-size:0.82rem">${formatDate(f.created_at)}</td>`
+    ]);
+    tbody.appendChild(row);
+  });
 }
 
 function filterFiles() {
@@ -1753,22 +1805,82 @@ function filterFiles() {
 
 function renderAllFilesTable(files) {
   const tbody = document.getElementById('allFilesBody');
+  SafeDOM.clearElementContent(tbody);
+  
   if (!files.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملفات</p></div></td></tr>';
+    const emptyRow = SafeDOM.createSafeTableRow([
+      `<td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملفات</p></div></td>`
+    ]);
+    tbody.appendChild(emptyRow);
     return;
   }
-  tbody.innerHTML = files.map(f => `
-    <tr>
-      <td><div class="file-name-cell"><span>📄</span><span class="file-name-text" title="${escHtml(f.name)}">${escHtml(f.title || f.name)}</span></div></td>
-      <td><span class="badge badge-curriculum">${f.curriculum === 'badini' ? 'بادينی' : 'عربي'}</span></td>
-      <td>${subjectLabel(f.subject)}</td>
-      <td><span class="badge badge-type">${typeLabel(f.type)}</span></td>
-      <td style="color:var(--text-muted);font-size:0.82rem">${formatSize(f.size_bytes || 0)}</td>
-      <td style="color:var(--text-muted);font-size:0.82rem">${formatDate(f.created_at)}</td>
-      <td class="link-cell"><a href="${escHtml(f.url)}" target="_blank">فتح ↗</a></td>
-      <td><button class="btn btn-danger js-delete-file" data-id="${escHtml(f.id)}" data-path="${escHtml(f.path || '')}" data-name="${escHtml(f.title || f.name)}">🗑️</button></td>
-    </tr>
-  `).join('');
+  
+  files.forEach(f => {
+    const row = document.createElement('tr');
+    const fileNameCell = document.createElement('td');
+    const curriculumCell = document.createElement('td');
+    const subjectCell = document.createElement('td');
+    const typeCell = document.createElement('td');
+    const sizeCell = document.createElement('td');
+    const dateCell = document.createElement('td');
+    const linkCell = document.createElement('td');
+    const deleteCell = document.createElement('td');
+    
+    const fileNameText = document.createElement('span');
+    fileNameText.className = 'file-name-text';
+    fileNameText.title = SafeDOM.escapeHtml(f.name);
+    fileNameText.textContent = SafeDOM.escapeHtml(f.title || f.name);
+    
+    const curriculumBadge = document.createElement('span');
+    curriculumBadge.className = 'badge badge-curriculum';
+    curriculumBadge.textContent = f.curriculum === 'badini' ? 'بادينی' : 'عربي';
+    
+    const subjectText = document.createElement('span');
+    subjectText.textContent = subjectLabel(f.subject);
+    
+    const typeBadge = document.createElement('span');
+    typeBadge.className = 'badge badge-type';
+    typeBadge.textContent = typeLabel(f.type);
+    
+    const sizeText = document.createElement('span');
+    sizeText.textContent = formatSize(f.size_bytes);
+    
+    const dateText = document.createElement('span');
+    dateText.style.color = 'var(--text-muted)';
+    dateText.style.fontSize = '0.82rem';
+    dateText.textContent = formatDate(f.created_at);
+    
+    const linkButton = document.createElement('button');
+    linkButton.className = 'btn-small btn-danger';
+    linkButton.textContent = 'حذف';
+    linkButton.onclick = () => openDeleteModal(f.id, f.path, SafeDOM.escapeHtml(f.title || f.name));
+    
+    fileNameCell.appendChild(document.createElement('span')).textContent = '📄';
+    fileNameCell.appendChild(fileNameText);
+    
+    curriculumCell.appendChild(curriculumBadge);
+    subjectCell.appendChild(subjectText);
+    typeCell.appendChild(typeBadge);
+    sizeCell.appendChild(sizeText);
+    dateCell.appendChild(dateText);
+    linkCell.appendChild(linkButton);
+    deleteCell.appendChild(document.createElement('button')).className = 'btn btn-danger js-delete-file';
+    deleteCell.querySelector('button').dataset.id = f.id;
+    deleteCell.querySelector('button').dataset.path = f.path || '';
+    deleteCell.querySelector('button').dataset.name = SafeDOM.escapeHtml(f.title || f.name);
+    deleteCell.querySelector('button').textContent = '🗑️';
+    
+    row.appendChild(fileNameCell);
+    row.appendChild(curriculumCell);
+    row.appendChild(subjectCell);
+    row.appendChild(typeCell);
+    row.appendChild(sizeCell);
+    row.appendChild(dateCell);
+    row.appendChild(linkCell);
+    row.appendChild(deleteCell);
+    
+    tbody.appendChild(row);
+  });
 }
 
 document.getElementById('allFilesBody').addEventListener('click', (event) => {
@@ -1792,26 +1904,98 @@ function closeDeleteModal() {
 }
 
 async function confirmDelete() {
-  if (!deleteTargetId || !supabaseClient) return;
+  // Verify admin session before allowing delete
+  const hasAccess = await verifyAdminAccess();
+  if (!hasAccess) {
+    showToast('غير مصرح لك بالوصول إلى هذه الوظيفة', 'error');
+    showLoginScreen();
+    return;
+  }
+
+  if (!deleteTargetId || !supabaseClient) {
+    showToast('بيانات الحذف غير مكتملة', 'error');
+    return;
+  }
+
+  const btn = document.querySelector('#deleteModal .btn-danger-solid');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'جاري الحذف...';
 
   try {
     const cfg = loadConfig();
+    let storageError = null;
+    let dbError = null;
 
-    // Delete from storage
-    if (deleteTargetPath) {
-      await supabaseClient.storage.from(cfg.bucket).remove([deleteTargetPath]);
+    // First, get file info from DB for logging
+    const { data: fileInfo } = await supabaseClient
+      .from('files')
+      .select('name, path, url')
+      .eq('id', deleteTargetId)
+      .maybeSingle();
+
+    if (!fileInfo) {
+      throw new Error('الملف غير موجود في قاعدة البيانات');
+    }
+
+    // Delete from storage with retry
+    if (deleteTargetPath && fileInfo.path) {
+      try {
+        const { error: storageDelError } = await supabaseClient
+          .storage
+          .from(cfg.bucket)
+          .remove([deleteTargetPath]);
+        
+        if (storageDelError) {
+          storageError = storageDelError;
+          console.warn('Storage delete error:', storageDelError);
+        }
+      } catch (error) {
+        storageError = error;
+        console.warn('Storage delete exception:', error);
+      }
     }
 
     // Delete from DB
-    const { error } = await supabaseClient.from('files').delete().eq('id', deleteTargetId);
-    if (error) throw error;
+    try {
+      const { error: dbDelError } = await supabaseClient
+        .from('files')
+        .delete()
+        .eq('id', deleteTargetId);
+      
+      if (dbDelError) {
+        dbError = dbDelError;
+        console.warn('DB delete error:', dbDelError);
+      }
+    } catch (error) {
+      dbError = error;
+      console.warn('DB delete exception:', error);
+    }
+
+    // Check if at least one operation succeeded
+    if (storageError && dbError) {
+      throw new Error('فشل حذف الملف من التخزين وقاعدة البيانات');
+    }
+
+    if (storageError && !dbError) {
+      console.warn('Storage delete failed but DB delete succeeded for:', fileInfo.name);
+    }
+
+    if (!storageError && dbError) {
+      console.warn('DB delete failed but storage delete succeeded for:', fileInfo.name);
+    }
 
     showToast('تم حذف الملف بنجاح', 'success');
     closeDeleteModal();
     loadAllFiles();
     loadDashboard();
-  } catch(e) {
-    showToast('خطأ في الحذف: ' + e.message, 'error');
+
+  } catch (error) {
+    console.error('Delete operation failed:', error);
+    showToast('خطأ في الحذف: ' + error.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
   }
 }
 
@@ -1849,42 +2033,54 @@ async function loadAdminUsers() {
   const tbody = document.getElementById('adminUsersBody');
   if (!tbody) return;
   if (!supabaseClient) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>Supabase غير متصل</p></div></td></tr>';
+    const emptyRow = SafeDOM.createSafeTableRow([
+      `<td colspan="7"><div class="empty-state"><p>Supabase غير متصل</p></div></td>`
+    ]);
+    tbody.appendChild(emptyRow);
     return;
   }
   const { data, error } = await supabaseClient
     .from('users')
-    .select('email,full_name,phone,role,last_login_at,last_login_ip,created_at')
+    .select('email,full_name,role,created_at')
     .order('created_at', { ascending: false })
     .limit(1000);
   if (error) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>' + escHtml(error.message) + '</p></div></td></tr>';
+    const errorRow = SafeDOM.createSafeTableRow([
+      `<td colspan="7"><div class="empty-state"><p>${SafeDOM.escapeHtml(error.message)}</p></div></td>`
+    ]);
+    tbody.appendChild(errorRow);
     showToast('خطأ تحميل المستخدمين: ' + error.message, 'error');
     return;
   }
   adminUsersCache = data || [];
   if (!adminUsersCache.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📭</div><p>لا مستخدمين</p></div></td></tr>';
+    const emptyRow = SafeDOM.createSafeTableRow([
+      `<td colspan="7"><div class="empty-state"><div class="empty-icon">📭</div><p>لا مستخدمين</p></div></td>`
+    ]);
+    tbody.appendChild(emptyRow);
     return;
   }
-  tbody.innerHTML = adminUsersCache.map((u) => {
-    return '<tr>' +
-      '<td>' + escHtml(u.email) + '</td>' +
-      '<td>' + escHtml(u.full_name || '—') + '</td>' +
-      '<td>' + escHtml(u.phone || '—') + '</td>' +
-      '<td>' + escHtml(u.role || '—') + '</td>' +
-      '<td>' + escHtml(u.last_login_at ? new Date(u.last_login_at).toLocaleString('ar-IQ') : '—') + '</td>' +
-      '<td>' + escHtml(u.last_login_ip || '—') + '</td>' +
-      '<td>' + escHtml(u.created_at ? formatDate(u.created_at) : '—') + '</td>' +
-      '</tr>';
-  }).join('');
+  
+  adminUsersCache.forEach(u => {
+    const row = SafeDOM.createSafeTableRow([
+      `<td>${SafeDOM.escapeHtml(u.email)}</td>`,
+      `<td>${SafeDOM.escapeHtml(u.full_name || '—')}</td>`,
+      `<td><span class="badge ${u.role === 'admin' ? 'badge-admin' : 'badge-student'}">${u.role === 'admin' ? 'مسؤول' : 'طالب'}</span></td>`,
+      `<td>${u.created_at ? new Date(u.created_at).toLocaleString('ar-IQ') : '—'}</td>`,
+      `<td><button class="btn-small btn-danger" onclick="deleteUser('${u.id}', '${SafeDOM.escapeHtml(u.email)}')">حذف</button></td>`
+    ]);
+    tbody.appendChild(row);
+  });
 }
 
 async function loadSecurityLogs() {
   const tbody = document.getElementById('securityLogsBody');
   if (!tbody) return;
   if (!supabaseClient) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>Supabase غير متصل</p></div></td></tr>';
+    const emptyRow = SafeDOM.createSafeTableRow([
+      `<td colspan="6"><div class="empty-state"><p>Supabase غير متصل</p></div></td>`
+    ]);
+    tbody.appendChild(emptyRow);
     return;
   }
   const { data, error } = await supabaseClient
@@ -1893,25 +2089,47 @@ async function loadSecurityLogs() {
     .order('created_at', { ascending: false })
     .limit(500);
   if (error) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>' + escHtml(error.message) + '</p></div></td></tr>';
+    const errorRow = SafeDOM.createSafeTableRow([
+      `<td colspan="6"><div class="empty-state"><p>${SafeDOM.escapeHtml(error.message)}</p></div></td>`
+    ]);
+    tbody.appendChild(errorRow);
     showToast('خطأ تحميل السجل: ' + error.message, 'error');
     return;
   }
   securityLogsCache = data || [];
   if (!securityLogsCache.length) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📭</div><p>لا سجلات بعد</p></div></td></tr>';
+    const emptyRow = SafeDOM.createSafeTableRow([
+      `<td colspan="6"><div class="empty-state"><div class="empty-icon">📭</div><p>لا سجلات بعد</p></div></td>`
+    ]);
+    tbody.appendChild(emptyRow);
     return;
   }
-  tbody.innerHTML = securityLogsCache.map((r) => {
-    return '<tr>' +
-      '<td>' + escHtml(r.created_at ? new Date(r.created_at).toLocaleString('ar-IQ') : '—') + '</td>' +
-      '<td>' + escHtml(r.event_type) + '</td>' +
-      '<td>' + (r.success ? '✓' : '✕') + '</td>' +
-      '<td>' + escHtml(r.email_attempt || '—') + '</td>' +
-      '<td>' + escHtml(r.ip_address || '—') + '</td>' +
-      '<td style="max-width:220px;word-break:break-word;font-size:0.78rem">' + escHtml((r.user_agent || '').slice(0, 160)) + '</td>' +
-      '</tr>';
-  }).join('');
+  
+  securityLogsCache.forEach(r => {
+    const row = document.createElement('tr');
+    const dateCell = document.createElement('td');
+    const eventTypeCell = document.createElement('td');
+    const emailAttemptCell = document.createElement('td');
+    const ipAddressCell = document.createElement('td');
+    const userAgentCell = document.createElement('td');
+    const successCell = document.createElement('td');
+    
+    dateCell.textContent = r.created_at ? new Date(r.created_at).toLocaleString('ar-IQ') : '—';
+    eventTypeCell.textContent = SafeDOM.escapeHtml(r.event_type);
+    emailAttemptCell.textContent = SafeDOM.escapeHtml(r.email_attempt || '—');
+    ipAddressCell.textContent = SafeDOM.escapeHtml(r.ip_address || '—');
+    userAgentCell.textContent = SafeDOM.escapeHtml(r.user_agent || '—');
+    successCell.textContent = r.success ? '✅ نجاح' : '❌ فشل';
+    
+    row.appendChild(dateCell);
+    row.appendChild(eventTypeCell);
+    row.appendChild(emailAttemptCell);
+    row.appendChild(ipAddressCell);
+    row.appendChild(userAgentCell);
+    row.appendChild(successCell);
+    
+    tbody.appendChild(row);
+  });
 }
 
 function exportUsersCsv() {
@@ -2009,32 +2227,93 @@ CREATE POLICY "admins delete files" ON files FOR DELETE TO authenticated USING (
   navigator.clipboard.writeText(sql).then(() => showToast('تم نسخ الكود ✓', 'success'));
 }
 
+// Secure authentication check with DevTools bypass prevention
+let adminAuthCheckInterval = null;
+
+async function verifyAdminAccess() {
+  if (!window.AlendAuth) return false;
+  
+  try {
+    const session = await window.AlendAuth.getSession();
+    if (!session?.user) return false;
+
+    const isAdmin = await window.AlendAuth.isUserAdmin(session.user);
+    if (!isAdmin) {
+      // Log unauthorized access attempt
+      await window.AlendAuth.reportSecurityEvent({
+        event_type: 'unauthorized_admin_access',
+        email_attempt: session.user.email,
+        success: false
+      }, session.access_token);
+      
+      // Force logout
+      await window.AlendAuth.signOutLocal();
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Auth verification failed:', error);
+    return false;
+  }
+}
+
+function showLoginScreen() {
+  const loginScreen = document.getElementById('loginScreen');
+  const adminLayout = document.getElementById('adminLayout');
+  const loginError = document.getElementById('loginError');
+  
+  if (loginScreen) loginScreen.style.display = 'flex';
+  if (adminLayout) adminLayout.classList.add('hidden');
+  if (loginError) {
+    loginError.style.display = 'block';
+    loginError.textContent = 'هذا الحساب ليس مسؤولاً.';
+  }
+}
+
+function showAdminLayout() {
+  const loginScreen = document.getElementById('loginScreen');
+  const adminLayout = document.getElementById('adminLayout');
+  const loginError = document.getElementById('loginError');
+  
+  if (loginScreen) loginScreen.style.display = 'none';
+  if (adminLayout) adminLayout.classList.remove('hidden');
+  if (loginError) loginError.style.display = 'none';
+}
+
+// Start continuous auth verification
+function startAuthVerification() {
+  // Clear any existing interval
+  if (adminAuthCheckInterval) {
+    clearInterval(adminAuthCheckInterval);
+  }
+  
+  // Check every 5 seconds
+  adminAuthCheckInterval = setInterval(async () => {
+    const hasAccess = await verifyAdminAccess();
+    if (!hasAccess) {
+      showLoginScreen();
+    }
+  }, 5000);
+}
+
 // Init
 updateThemeBtn();
 (async function bootstrapAdminAuth() {
   if (!window.AlendAuth) return;
   await window.AlendAuth.init();
-  const session = await window.AlendAuth.getSession();
-  if (!session?.user) return;
-
-  const isAdmin = await window.AlendAuth.isUserAdmin(session.user);
-  if (!isAdmin) {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('loginError').textContent = 'هذا الحساب ليس مسؤولاً.';
-    await window.AlendAuth.reportSecurityEvent({
-      event_type: 'unauthorized_admin_access',
-      email_attempt: session.user.email,
-      success: false
-    }, session.access_token);
-    await window.AlendAuth.signOutLocal();
-    return;
+  
+  const hasAccess = await verifyAdminAccess();
+  if (hasAccess) {
+    showAdminLayout();
+    await initSupabase();
+    loadSettingsForm();
+    checkSupabaseWarning();
+    startAuthVerification(); // Start continuous verification
+  } else {
+    showLoginScreen();
   }
-
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminLayout').classList.remove('hidden');
-  await initSupabase();
-  loadSettingsForm();
-  checkSupabaseWarning();
+  
   updateThemeBtn();
 })();
 </script>
