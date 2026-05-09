@@ -80,7 +80,13 @@ const translations = {
     footer_nav_about: "عن المنصة",
     footer_nav_login: "تسجيل الدخول",
     footer_newsletter_placeholder: "بريدك الإلكتروني",
-    footer_newsletter_btn: "اشتراك"
+    footer_newsletter_btn: "اشتراك",
+    footer_contact_email: "📧 support@ppalend.com",
+    footer_contact_region: "📍 كردستان العراق",
+    footer_social_facebook: "فيسبوك",
+    footer_social_instagram: "إنستغرام",
+    footer_social_youtube: "يوتيوب",
+    footer_social_telegram: "تيليغرام"
   },
 
   ku: {
@@ -161,7 +167,13 @@ const translations = {
     footer_nav_about: "دەربارە",
     footer_nav_login: "چوونەژوورەوە",
     footer_newsletter_placeholder: "ئیمەیڵەکەت",
-    footer_newsletter_btn: "تۆمار"
+    footer_newsletter_btn: "تۆمار",
+    footer_contact_email: "📧 support@ppalend.com",
+    footer_contact_region: "📍 هەرێمی کوردستان — عێراق",
+    footer_social_facebook: "فەیسبووک",
+    footer_social_instagram: "ئینستاگرام",
+    footer_social_youtube: "یوتیوب",
+    footer_social_telegram: "تێلێگرام"
   },
 
   ba: {
@@ -242,7 +254,13 @@ const translations = {
     footer_nav_about: "دەربارە",
     footer_nav_login: "چوونەژوورەوە",
     footer_newsletter_placeholder: "ئیمەیڵەکەت",
-    footer_newsletter_btn: "تۆمار"
+    footer_newsletter_btn: "تۆمار",
+    footer_contact_email: "📧 support@ppalend.com",
+    footer_contact_region: "📍 کوردستان — عێراق",
+    footer_social_facebook: "فەیسبووک",
+    footer_social_instagram: "ئینستاگرام",
+    footer_social_youtube: "یوتیوب",
+    footer_social_telegram: "تێلێگرام"
   }
 };
 
@@ -282,6 +300,15 @@ const LangManager = {
     document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
       const key = el.getAttribute('data-lang-placeholder');
       el.placeholder = this.get(key);
+    });
+
+    document.querySelectorAll('[data-lang-attr]').forEach(el => {
+      const spec = el.getAttribute('data-lang-attr');
+      if (!spec) return;
+      spec.split(/\s+/).forEach((pair) => {
+        const [attr, key] = pair.split(":");
+        if (attr && key) el.setAttribute(attr, this.get(key));
+      });
     });
 
     document.querySelectorAll('.lang-btn').forEach(btn => {

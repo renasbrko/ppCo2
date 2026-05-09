@@ -7,8 +7,11 @@
 - [ ] Confirm Supabase SQL migrations are applied:
   - `supabase/phase-1-schema.sql`
   - `supabase/phase-2-storage-security.sql`
-- [ ] Deploy Edge Function:
+  - `supabase/phase-3-user-profile.sql` (recommended: `full_name`, `phone`, own-profile updates)
+  - `supabase/phase-4-security-logs.sql` (`security_logs`, login audit columns on `users`)
+- [ ] Deploy Edge Functions:
   - `supabase/functions/secure-content/index.ts`
+  - `supabase/functions/log-auth-event/index.ts` (use `--no-verify-jwt`; see `supabase/ADMIN_AND_EMAIL_SETUP.md`)
 
 ## 2) Vercel project setup
 
@@ -43,8 +46,10 @@ Secret server-only values (NEVER in frontend):
 
 ## 5) Authentication and route checks
 
-- [ ] `/login.html` loads and Google OAuth works.
-- [ ] Apple OAuth works (if provider configured in Supabase).
+- [ ] Supabase **Email** provider enabled (Authentication → Providers → Email).
+- [ ] Site URL set to production (e.g. `https://pp-co2.vercel.app`) and redirect URLs include `https://pp-co2.vercel.app/login.html`.
+- [ ] `/login.html` loads: register (full name, email, phone, password) and sign-in work.
+- [ ] If **Confirm email** is enabled, new users complete verification then can sign in.
 - [ ] Unauthenticated user visiting protected route gets redirected to login.
 - [ ] Authenticated user can access curriculum pages.
 - [ ] Non-admin users cannot access admin-only actions.

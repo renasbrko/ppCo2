@@ -10,16 +10,12 @@ This phase adds secure auth foundations without rewriting the frontend.
    - `anonKey`
    - `adminEmail` (must be your email only)
 
-## 2) Enable OAuth providers
+## 2) Enable Email authentication
 
 In Supabase dashboard:
 
-1. Go to Authentication -> Providers.
-2. Enable Google.
-3. Enable Apple.
-4. Add redirect URL:
-   - `https://YOUR_DOMAIN/index.html`
-   - For local testing, also include your local origin.
+1. Go to **Authentication → Providers → Email** and enable it.
+2. Under **Authentication → URL Configuration**, set **Site URL** and **Redirect URLs** (see `supabase/EMAIL_AUTH_SETUP.md`).
 
 ## 3) Create database schema and RLS
 
@@ -39,7 +35,7 @@ on conflict (id) do update set role = excluded.role;
 
 ## 5) What is now protected
 
-- `login.html` handles OAuth login.
+- `login.html` handles email + password sign-in and registration.
 - Educational pages are guarded by auth bootstrap in `js/theme.js`.
 - `admin.html` now expects Supabase authenticated admin email.
 

@@ -128,14 +128,14 @@ function upgradeFooter() {
         <div>
           <p class="footer-title" data-lang="footer_contact_title">پەیوەندی</p>
           <div class="footer-contact">
-            <p>📧 support@ppalend.com</p>
-            <p>📍 Kurdistan - Iraq</p>
+            <p data-lang="footer_contact_email">📧 support@ppalend.com</p>
+            <p data-lang="footer_contact_region">📍 هەرێمی کوردستان — عێراق</p>
           </div>
           <div class="footer-social">
-            <a class="social-icon" href="#" aria-label="Facebook">f</a>
-            <a class="social-icon" href="#" aria-label="Instagram">i</a>
-            <a class="social-icon" href="#" aria-label="YouTube">▶</a>
-            <a class="social-icon" href="#" aria-label="Telegram">t</a>
+            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_facebook" aria-label="Facebook">f</a>
+            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_instagram" aria-label="Instagram">i</a>
+            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_youtube" aria-label="YouTube">▶</a>
+            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_telegram" aria-label="Telegram">t</a>
           </div>
         </div>
         <div class="footer-newsletter">

@@ -7,15 +7,16 @@
   <link rel="icon" href="logo.png" type="image/png">
   <style>
     :root {
-      --bg: #081327;
-      --bg-soft: #0b1b34;
-      --card: #0f223f;
+      --bg: #051120;
+      --bg-soft: #0a192f;
+      --card: rgba(10, 25, 47, 0.96);
       --border: rgba(255, 255, 255, 0.1);
       --gold: #c9a24d;
       --gold-light: #e0ba6d;
       --text: #e8f0fb;
       --muted: #8fa8c5;
       --danger: #ff8a8a;
+      --success: #86efac;
       --radius-lg: 20px;
       --radius-md: 12px;
     }
@@ -39,208 +40,207 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(circle at 20% 20%, rgba(201, 162, 77, 0.12), transparent 45%),
-        radial-gradient(circle at 80% 80%, rgba(24, 63, 115, 0.45), transparent 42%),
-        linear-gradient(150deg, var(--bg), var(--bg-soft));
+        radial-gradient(circle at 20% 20%, rgba(201, 162, 77, 0.1), transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(24, 63, 115, 0.35), transparent 42%),
+        linear-gradient(160deg, var(--bg), var(--bg-soft));
       z-index: -1;
+    }
+    @keyframes card-rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
     .card {
       width: 100%;
       max-width: 440px;
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      background: linear-gradient(180deg, rgba(15, 34, 63, 0.96), rgba(10, 24, 44, 0.96));
-      padding: 1.3rem 1.2rem 1.15rem;
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(4px);
+      background: var(--card);
+      padding: 1.5rem 1.35rem 1.35rem;
+      box-shadow:
+        0 6px 6px rgba(0, 0, 0, 0.18),
+        0 28px 60px rgba(0, 0, 0, 0.52),
+        0 0 0 1px rgba(201, 162, 77, 0.06) inset;
+      backdrop-filter: blur(10px);
+      animation: card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     .card-head {
       text-align: center;
-      margin-bottom: 0.85rem;
+      margin-bottom: 1rem;
     }
     .logo-wrap {
       display: flex;
       justify-content: center;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.45rem;
     }
     .logo {
       width: 64px;
       height: 64px;
       border-radius: 14px;
-      box-shadow: 0 8px 22px rgba(201, 162, 77, 0.25);
+      box-shadow: 0 8px 22px rgba(201, 162, 77, 0.22);
     }
-    h1 {
-      margin: 0.22rem 0 0.25rem;
-      font-size: 1.5rem;
+    .welcome {
+      margin: 0.35rem 0 0.15rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
       text-align: center;
-      line-height: 1.35;
-      color: #ffffff;
     }
-    p {
+    .subtitle {
       margin: 0 0 0.85rem;
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       text-align: center;
-      line-height: 1.7;
+      line-height: 1.65;
     }
     .auth-tabs {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.35rem;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 0.7rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 0.75rem;
       border: 1px solid var(--border);
-      padding: 0.22rem;
-      margin-bottom: 0.85rem;
+      padding: 0.25rem;
+      margin-bottom: 1rem;
     }
     .auth-tab {
       border: none;
       border-radius: 0.55rem;
-      padding: 0.45rem 0.6rem;
+      padding: 0.5rem 0.65rem;
       background: transparent;
       color: var(--muted);
       font: inherit;
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       font-weight: 700;
-      cursor: default;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
     }
     .auth-tab.active {
       background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: #12233f;
+      color: #0d1f35;
+      box-shadow: 0 4px 14px rgba(201, 162, 77, 0.35);
     }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      margin: 0.85rem 0;
-      color: var(--muted);
-      font-size: 0.78rem;
+    .auth-tab:not(.active):hover {
+      color: var(--text);
     }
-    .divider::before,
-    .divider::after {
-      content: "";
-      height: 1px;
-      flex: 1;
-      background: rgba(255, 255, 255, 0.14);
-    }
-
-    .oauth-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.45rem;
-      margin-bottom: 0.75rem;
-    }
-    .actions {
-      display: grid;
-      gap: 0.6rem;
-      margin-top: 0.35rem;
-    }
+    .panel { display: none; }
+    .panel.active { display: block; }
     .field {
-      position: relative;
+      margin-bottom: 0.65rem;
+    }
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
     }
     .field input {
       width: 100%;
-      border-radius: 0.65rem;
+      border-radius: var(--radius-md);
       border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(8, 19, 39, 0.55);
+      background: rgba(5, 17, 32, 0.65);
       color: var(--text);
-      padding: 0.72rem 0.72rem;
+      padding: 0.72rem 0.85rem;
       font: inherit;
       font-size: 0.9rem;
       outline: none;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .field input::placeholder {
-      color: rgba(143, 168, 197, 0.78);
+      color: rgba(143, 168, 197, 0.65);
     }
     .field input:focus {
-      border-color: rgba(201, 162, 77, 0.6);
-      box-shadow: 0 0 0 2px rgba(201, 162, 77, 0.14);
+      border-color: rgba(201, 162, 77, 0.55);
+      box-shadow: 0 0 0 2px rgba(201, 162, 77, 0.12);
+    }
+    .field-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+      line-height: 1.4;
     }
     .btn {
       width: 100%;
-      border: 1px solid transparent;
+      border: none;
       border-radius: var(--radius-md);
       background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: #12233f;
+      color: #0d1f35;
       padding: 0.82rem 1rem;
       cursor: pointer;
-      margin: 0;
-      font-weight: 700;
+      margin-top: 0.35rem;
+      font-weight: 800;
       font-size: 0.95rem;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
-      box-shadow: 0 10px 22px rgba(201, 162, 77, 0.24);
-    }
-    .btn-secondary {
-      background: rgba(8, 19, 39, 0.4);
-      color: #e8f0fb;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      box-shadow: none;
-      font-size: 0.85rem;
-      padding: 0.67rem 0.7rem;
-    }
-    .btn-secondary:hover {
-      border-color: var(--gold);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
-      filter: none;
-    }
-    .btn-primary {
-      margin-top: 0.2rem;
+      font-family: inherit;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      box-shadow: 0 10px 24px rgba(201, 162, 77, 0.28);
     }
     .btn:hover {
       transform: translateY(-2px);
       filter: brightness(1.03);
-      box-shadow: 0 14px 28px rgba(201, 162, 77, 0.32);
+      box-shadow: 0 14px 30px rgba(201, 162, 77, 0.35);
     }
-    .btn:active {
-      transform: translateY(0);
+    .btn:active { transform: translateY(0); }
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .forgot {
+      display: block;
+      text-align: left;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--gold);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+    }
+    .forgot:hover { text-decoration: underline; }
+    .error {
+      color: var(--danger);
+      font-size: 0.84rem;
+      min-height: 1.35rem;
+      margin-top: 0.65rem;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .success {
+      color: var(--success);
+      font-size: 0.84rem;
+      margin-top: 0.65rem;
+      text-align: center;
+      line-height: 1.45;
     }
     .hint {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--muted);
       margin-top: 0.85rem;
       text-align: center;
-      line-height: 1.65;
+      line-height: 1.6;
     }
-    .error {
-      color: var(--danger);
-      font-size: 0.85rem;
-      min-height: 1.2rem;
-      margin-top: 0.8rem;
+    .back-home {
+      display: block;
       text-align: center;
-      line-height: 1.5;
-    }
-    .link-line {
-      margin-top: 0.7rem;
-      text-align: center;
-      font-size: 0.79rem;
+      margin-top: 1rem;
+      font-size: 0.82rem;
       color: var(--muted);
     }
-
+    .back-home a {
+      color: var(--gold);
+      font-weight: 700;
+    }
     @media (max-width: 480px) {
-      .card {
-        border-radius: 16px;
-        padding: 1rem 0.9rem 0.95rem;
-      }
-      h1 {
-        font-size: 1.32rem;
-      }
-      p {
-        font-size: 0.86rem;
-        margin-bottom: 0.7rem;
-      }
-      .btn {
-        padding: 0.74rem 0.85rem;
-        font-size: 0.92rem;
-      }
-      .oauth-row {
-        grid-template-columns: 1fr;
-      }
-      .logo {
-        width: 56px;
-        height: 56px;
-      }
+      body { padding: 1rem 0.85rem; align-content: center; }
+      .card { padding: 1.2rem 1rem 1.1rem; max-width: 100%; }
+      .welcome { font-size: 1.15rem; }
     }
   </style>
 </head>
@@ -248,75 +248,197 @@
   <main class="card">
     <div class="card-head">
       <div class="logo-wrap">
-        <img src="logo.png" alt="PPAlend logo" class="logo">
+        <img src="logo.png" alt="ئەلەند" class="logo">
       </div>
-      <h1>ئەلەند</h1>
-      <p>بەخێربێیتەوە — بۆ بەردەستبوونی ناوەڕۆک بچۆرە ژوورەوە.</p>
+      <p class="welcome">بەخێربێیتەوە 👋</p>
+      <p class="subtitle">پلاتفۆرمی پەروەردەیی ئەلند — چوونەژوورەوە یان تۆمارکردن بە ئیمەیڵ و تێپەڕەوشە.</p>
     </div>
 
-    <div class="auth-tabs">
-      <button class="auth-tab active" type="button">چوونەژوورەوە</button>
-      <button class="auth-tab" type="button">تۆمارکردن</button>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true">چوونەژوورەوە</button>
+      <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false">تۆمارکردن</button>
     </div>
 
-    <div class="oauth-row">
-      <button class="btn btn-secondary" id="appleBtn" type="button">Apple</button>
-      <button class="btn btn-secondary" id="googleBtn" type="button">Google</button>
+    <div id="panelLogin" class="panel active" role="tabpanel">
+      <form id="formLogin" novalidate>
+        <div class="field">
+          <label for="loginEmail">ئیمەیڵ</label>
+          <input id="loginEmail" type="email" autocomplete="email" required placeholder="name@example.com">
+        </div>
+        <div class="field">
+          <label for="loginPassword">تێپەڕەوشە</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn" id="btnLogin">چوونەژوورەوە</button>
+      </form>
     </div>
 
-    <div class="divider">یان</div>
-
-    <div class="actions">
-      <div class="field">
-        <input type="email" placeholder="ئیمەیڵەکەت" autocomplete="email">
-      </div>
-      <div class="field">
-        <input type="password" placeholder="تێپەڕەوشە" autocomplete="current-password">
-      </div>
-      <button class="btn btn-primary" id="emailFlowBtn" type="button">چوونەژوورەوە</button>
+    <div id="panelRegister" class="panel" role="tabpanel" hidden>
+      <form id="formRegister" novalidate>
+        <div class="field">
+          <label for="regName">ناوی تەواو</label>
+          <input id="regName" type="text" autocomplete="name" required placeholder="ناوی تەواو" minlength="2">
+        </div>
+        <div class="field">
+          <label for="regEmail">ئیمەیڵ</label>
+          <input id="regEmail" type="email" autocomplete="email" required placeholder="name@example.com">
+        </div>
+        <div class="field">
+          <label for="regPhone">ژمارەی مۆبایل</label>
+          <input id="regPhone" type="tel" autocomplete="tel" required placeholder="+9647XXXXXXXX">
+          <p class="field-hint">10–15 ژمارە؛ دەتوانێت + لە سەرەتادا بێت.</p>
+        </div>
+        <div class="field">
+          <label for="regPassword">تێپەڕەوشە</label>
+          <input id="regPassword" type="password" autocomplete="new-password" required placeholder="••••••••">
+          <p class="field-hint">لانیکەم 8 پیت، پیتی گەورە و بچووک، و ژمارە.</p>
+        </div>
+        <div class="field">
+          <label for="regPassword2">دووبارەکردنەوەی تێپەڕەوشە</label>
+          <input id="regPassword2" type="password" autocomplete="new-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn" id="btnRegister">تۆمارکردن</button>
+      </form>
     </div>
-    <div class="error" id="authError"></div>
-    <div class="hint">تەنها بەکارهێنەری ڕێپێدراو دەتوانێت ناوەڕۆکی پارێزراو ببینێت.</div>
-    <div class="link-line">هەژمارت نییە؟ دواتر دەتوانرێت دامەزرێت.</div>
+
+    <div class="error" id="authError" aria-live="polite"></div>
+    <div class="success" id="authSuccess" aria-live="polite"></div>
+    <p class="hint">ناوەڕۆکی پەروەردەیی تەنها دوای چوونەژوورەوە دەبێتە بەردەست.</p>
+    <p class="back-home"><a href="index.html">← گەڕانەوە بۆ سەرەکی</a></p>
   </main>
 
   <script src="js/env.js"></script>
   <script src="js/supabase-auth.js"></script>
   <script>
-    const errorNode = document.getElementById("authError");
+    (function () {
+      const errEl = document.getElementById("authError");
+      const okEl = document.getElementById("authSuccess");
+      const tabLogin = document.getElementById("tabLogin");
+      const tabRegister = document.getElementById("tabRegister");
+      const panelLogin = document.getElementById("panelLogin");
+      const panelRegister = document.getElementById("panelRegister");
 
-    async function bootLogin() {
-      await window.AlendAuth.init();
-      const session = await window.AlendAuth.getSession();
-      if (session?.user) {
-        const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
-        window.location.href = returnTo;
+      function clearMessages() {
+        errEl.textContent = "";
+        okEl.textContent = "";
       }
-    }
 
-    document.getElementById("googleBtn").addEventListener("click", async () => {
-      errorNode.textContent = "";
-      try {
-        await window.AlendAuth.signInWithOAuth("google");
-      } catch (error) {
-        errorNode.textContent = error.message || "Google sign-in failed.";
+      function setMode(isLogin) {
+        clearMessages();
+        tabLogin.classList.toggle("active", isLogin);
+        tabRegister.classList.toggle("active", !isLogin);
+        tabLogin.setAttribute("aria-selected", isLogin);
+        tabRegister.setAttribute("aria-selected", !isLogin);
+        panelLogin.classList.toggle("active", isLogin);
+        panelRegister.classList.toggle("active", !isLogin);
+        panelRegister.hidden = isLogin;
       }
-    });
 
-    document.getElementById("appleBtn").addEventListener("click", async () => {
-      errorNode.textContent = "";
-      try {
-        await window.AlendAuth.signInWithOAuth("apple");
-      } catch (error) {
-        errorNode.textContent = error.message || "Apple sign-in failed.";
+      tabLogin.addEventListener("click", () => setMode(true));
+      tabRegister.addEventListener("click", () => setMode(false));
+
+      async function boot() {
+        const hadAuthHash = /access_token=|type=signup|type=recovery/i.test(
+          window.location.hash || ""
+        );
+        await window.AlendAuth.init();
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get("reason") === "unverified") {
+          errEl.textContent =
+            "تکایە سەرەتا ئیمەیڵەکەت پشتڕاست بکەرەوە؛ دواتر بچۆرە ژوورەوە.";
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+
+        const session = await window.AlendAuth.getSession();
+        if (session?.user) {
+          if (!window.AlendAuth.isEmailVerified(session.user)) {
+            await window.AlendAuth.signOutLocal();
+            errEl.textContent =
+              "هەژمارەکەت هێشتا پشتڕاست نەکراوەتەوە. سەیری سندوقی ئیمەیڵەکەت بکە.";
+            return;
+          }
+
+          if (hadAuthHash) {
+            okEl.textContent =
+              "ئیمەیڵەکەت بە سەرکەوتووی پشتڕاست کرا. دەچیتە ناو پلاتفۆرم...";
+            window.history.replaceState(
+              {},
+              "",
+              window.location.pathname + window.location.search
+            );
+            const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
+            setTimeout(() => {
+              window.location.href = returnTo;
+            }, 1100);
+            return;
+          }
+
+          const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
+          window.location.href = returnTo;
+        }
       }
-    });
 
-    document.getElementById("emailFlowBtn").addEventListener("click", () => {
-      errorNode.textContent = "ئەمەش زۆر زوو دێت. تکایە نێوان Google/Apple هەڵبژێرە.";
-    });
+      document.getElementById("formLogin").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMessages();
+        const btn = document.getElementById("btnLogin");
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        btn.disabled = true;
+        try {
+          await window.AlendAuth.signInWithEmailPassword(email, password);
+          const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
+          window.location.href = returnTo;
+        } catch (error) {
+          errEl.textContent = error.message || "هەڵە.";
+        } finally {
+          btn.disabled = false;
+        }
+      });
 
-    bootLogin();
+      document.getElementById("formRegister").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMessages();
+        const btn = document.getElementById("btnRegister");
+        const fullName = document.getElementById("regName").value;
+        const email = document.getElementById("regEmail").value;
+        const phone = document.getElementById("regPhone").value;
+        const password = document.getElementById("regPassword").value;
+        const password2 = document.getElementById("regPassword2").value;
+
+        if (password !== password2) {
+          errEl.textContent = "تێپەڕەوشەکان یەک ناگرنەوە.";
+          return;
+        }
+
+        btn.disabled = true;
+        try {
+          const data = await window.AlendAuth.signUpWithEmail({
+            fullName,
+            email,
+            phone,
+            password
+          });
+
+          if (data.session) {
+            const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
+            window.location.href = returnTo;
+            return;
+          }
+
+          okEl.textContent =
+            "تۆمارکردن سەرکەوتوو بوو. ئەگەر پشتڕاستکردنەوەی ئیمەیڵ چالاک بێت، تکایە لینکی نێرراو بەکاربهێنە، پاشان بچۆرە ژوورەوە.";
+          setMode(true);
+        } catch (error) {
+          errEl.textContent = error.message || "هەڵە.";
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      boot();
+    })();
   </script>
 </body>
 </html>

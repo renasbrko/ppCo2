@@ -1,0 +1,7 @@
+# Supabase CLI — deploy Edge Functions with:
+#   supabase functions deploy log-auth-event --no-verify-jwt
+#
+# Or set verify_jwt = false for this function in Dashboard → Edge Functions → log-auth-event → Settings.
+
+[functions.log-auth-event]
+verify_jwt = false
