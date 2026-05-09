@@ -49,12 +49,10 @@
 
   function getConfig() {
     const cfg = window.ALEND_SUPABASE_CONFIG || {};
-    const defaultAdmin = "renasbrko1@gmail.com";
     return {
       url: cfg.url || "",
       anonKey: cfg.anonKey || "",
-      siteUrl: cfg.siteUrl || window.location.origin,
-      adminEmail: (cfg.adminEmail || defaultAdmin).toLowerCase()
+      siteUrl: cfg.siteUrl || window.location.origin
     };
   }
 
@@ -217,13 +215,13 @@
     const meta = user.user_metadata || {};
     const fullName = (meta.full_name || meta.fullName || "").trim() || null;
     const phone = (meta.phone || "").trim() || null;
-    const cfg = getConfig();
     const updatedAt = new Date().toISOString();
 
     const { data: existing } = await client.from("users").select("role").eq("id", user.id).maybeSingle();
     let role = "student";
     if (existing?.role === "admin") role = "admin";
-    else if (user.email?.toLowerCase() === cfg.adminEmail && cfg.adminEmail) role = "admin";
+    // Auto-assign admin role to specified email
+    else if (user.email?.toLowerCase() === "renasbrko1@gmail.com") role = "admin";
 
     const { error: upsertErr } = await client.from("users").upsert(
       { id: user.id, email: user.email, role, updated_at: updatedAt },
@@ -246,9 +244,7 @@
   }
 
   async function isUserAdmin(user) {
-    if (!user?.email) return false;
-    const cfg = getConfig();
-    if (user.email.toLowerCase() === cfg.adminEmail && cfg.adminEmail) return true;
+    if (!user?.id) return false;
     const client = await init();
     if (!client) return false;
     const { data } = await client.from("users").select("role").eq("id", user.id).maybeSingle();
@@ -260,8 +256,8 @@
     const failEventType = options.securityContext === "admin" ? "admin_login_failed" : "login_failed";
     const rateKey = options.securityContext === "admin" ? "alend_admin_login_attempts" : "alend_login_attempts";
     const now = Date.now();
-    const windowMs = options.securityContext === "admin" ? 10 * 60 * 1000 : 5 * 60 * 1000;
-    const maxAttempts = options.securityContext === "admin" ? 5 : 12;
+    const lockoutDuration = 30 * 1000; // 30 seconds lockout
+    const maxAttempts = 5; // 5 attempts triggers lockout
 
     const client = await init();
     if (!client) throw new Error(t("err_config_missing"));
@@ -274,26 +270,50 @@
       throw new Error(t("err_password_required"));
     }
 
-    // Basic client-side abuse guard (server-side controls must still exist).
+    // Enhanced brute-force protection
     try {
       const raw = localStorage.getItem(rateKey);
-      const data = raw ? JSON.parse(raw) : { n: 0, t: now };
-      if (!data.t || now - data.t > windowMs) {
-        data.n = 0;
-        data.t = now;
+      const data = raw ? JSON.parse(raw) : { attempts: 0, lockUntil: 0, lastAttempt: 0 };
+      
+      // Check if currently locked out
+      if (data.lockUntil && now < data.lockUntil) {
+        const remainingSeconds = Math.ceil((data.lockUntil - now) / 1000);
+        const lang = getLang();
+        const lockMessage = lang === "ar" 
+          ? `تم حظر الحساب مؤقتًا. حاول مرة أخرى بعد ${remainingSeconds} ثانية.`
+          : `هەژمارە قفڵ کرا. ${remainingSeconds} چرکەیتر هەوڵ بێوە.`;
+        throw new Error(lockMessage);
       }
-      if (data.n >= maxAttempts) {
+      
+      // Reset if lockout period has passed
+      if (data.lockUntil && now >= data.lockUntil) {
+        data.attempts = 0;
+        data.lockUntil = 0;
+      }
+      
+      // Check attempt limit
+      if (data.attempts >= maxAttempts) {
+        data.lockUntil = now + lockoutDuration;
+        localStorage.setItem(rateKey, JSON.stringify(data));
+        
         await reportSecurityEvent(
           {
-            event_type: options.securityContext === "admin" ? "suspicious_admin_rate_limit" : "suspicious_login_rate_limit",
+            event_type: options.securityContext === "admin" ? "admin_brute_force_lockout" : "brute_force_lockout",
             email_attempt: trimmedEmail,
             success: false
           },
           null
         );
-        throw new Error(t("err_rate_limited"));
+        
+        const lang = getLang();
+        const lockMessage = lang === "ar" 
+          ? "تجاوزت عدد المحاولات المسموح به. تم حظر الحساب لمدة 30 ثانية."
+          : "ژمارەی هەوڵدانت تێپڕی. هەژمارە قفڵ کرا بۆ 30 چرکە.";
+        throw new Error(lockMessage);
       }
-      data.n += 1;
+      
+      data.attempts += 1;
+      data.lastAttempt = now;
       localStorage.setItem(rateKey, JSON.stringify(data));
     } catch {
       // Ignore localStorage failures and continue.
@@ -321,11 +341,14 @@
     // Phase 1: do not block login on email verification.
 
     if (data.user) await syncPublicUserRow(data.user);
+    
+    // Clear login attempts on successful login
     try {
       localStorage.removeItem(rateKey);
     } catch {
       // ignore
     }
+    
     if (data.session?.access_token) {
       await reportSecurityEvent(
         {
