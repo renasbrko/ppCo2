@@ -96,31 +96,49 @@
   }
 
   function toYoutubeEmbedUrl(raw) {
+    // Strict parsing: https only + strict host allowlist + reject spoofed domains.
+    let url;
     try {
-      const url = new URL(raw);
-      let id = "";
-      if (url.hostname.includes("youtu.be")) {
-        id = url.pathname.replace("/", "");
-      } else if (url.searchParams.has("v")) {
-        id = url.searchParams.get("v") || "";
-      } else if (url.pathname.includes("/embed/")) {
-        id = url.pathname.split("/embed/")[1] || "";
-      }
-
-      if (!id) return null;
-
-      const embed = new URL(`https://www.youtube-nocookie.com/embed/${id}`);
-      embed.searchParams.set("rel", "0");
-      embed.searchParams.set("modestbranding", "1");
-      embed.searchParams.set("controls", "1");
-      embed.searchParams.set("disablekb", "1");
-      embed.searchParams.set("iv_load_policy", "3");
-      embed.searchParams.set("fs", "0");
-      embed.searchParams.set("playsinline", "1");
-      return embed.toString();
+      url = new URL(String(raw || "").trim());
     } catch {
       return null;
     }
+    if (url.protocol !== "https:") return null;
+    if (url.username || url.password) return null;
+    const host = (url.hostname || "").toLowerCase();
+    const allowedHosts = new Set(["youtube.com", "www.youtube.com", "youtu.be"]);
+    if (!allowedHosts.has(host)) return null;
+
+    const idRe = /^[a-zA-Z0-9_-]{11}$/;
+    let id = "";
+    if (host === "youtu.be") {
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (parts.length !== 1) return null;
+      id = parts[0];
+    } else {
+      const path = url.pathname.replace(/\/+$/, "");
+      if (path === "/watch") {
+        id = url.searchParams.get("v") || "";
+      } else if (path.startsWith("/shorts/")) {
+        id = path.split("/shorts/")[1] || "";
+      } else if (path.startsWith("/embed/")) {
+        id = path.split("/embed/")[1] || "";
+      } else {
+        return null;
+      }
+    }
+    id = (id || "").trim();
+    if (!idRe.test(id)) return null;
+
+    const embed = new URL(`https://www.youtube-nocookie.com/embed/${id}`);
+    embed.searchParams.set("rel", "0");
+    embed.searchParams.set("modestbranding", "1");
+    embed.searchParams.set("controls", "1");
+    embed.searchParams.set("disablekb", "1");
+    embed.searchParams.set("iv_load_policy", "3");
+    embed.searchParams.set("fs", "0");
+    embed.searchParams.set("playsinline", "1");
+    return embed.toString();
   }
 
   function upgradeProtectedVideos() {
@@ -140,8 +158,7 @@
       iframe.allowFullscreen = false;
       wrap.appendChild(iframe);
 
-      node.innerHTML = "";
-      node.appendChild(wrap);
+      node.replaceChildren(wrap);
     });
   }
 

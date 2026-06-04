@@ -49,6 +49,23 @@ async function loadScriptOnce(src) {
   });
 }
 
+async function ensureLucideIcons() {
+  try {
+    await loadScriptOnce("https://cdn.jsdelivr.net/npm/lucide@latest");
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons({
+        attrs: {
+          width: "18",
+          height: "18",
+          "stroke-width": "1.8",
+        }
+      });
+    }
+  } catch {
+    // non-fatal
+  }
+}
+
 function getSharedJsBase() {
   const script = document.querySelector('script[src*="js/theme.js"]');
   const src = script?.getAttribute("src") || "js/theme.js";
@@ -104,56 +121,106 @@ function upgradeFooter() {
   const root = getRelativeRootFromPathname(window.location.pathname);
   const year = new Date().getFullYear();
 
-  footer.innerHTML = `
-    <div class="footer-inner">
-      <div class="footer-top">
-        <div>
-          <div class="footer-brand">
-            <img src="${root}logo.png" alt="PPAlend" class="footer-logo">
-            <div>
-              <h3 data-lang="footer_brand_title">پلاتفۆرمی پەروەردەیی ئەلند</h3>
-              <p class="footer-desc" data-lang="footer_brand_desc">پلاتفۆرمێکی مۆدێرن بۆ پێشکەشکردنی ناوەڕۆکی خوێندنی بەکوێت و بەخێرایی.</p>
-            </div>
-          </div>
-        </div>
-        <div>
-          <p class="footer-title" data-lang="footer_links_title">بەستەرەکان</p>
-          <ul class="footer-links">
-            <li><a href="${root}index.html" data-lang="footer_nav_home">سەرەکی</a></li>
-            <li><a href="${root}index.html#subjects" data-lang="footer_nav_subjects">بەشەکان</a></li>
-            <li><a href="${root}index.html#about" data-lang="footer_nav_about">دەربارە</a></li>
-            <li><a href="${root}login.html" data-lang="footer_nav_login">چوونەژوورەوە</a></li>
-          </ul>
-        </div>
-        <div>
-          <p class="footer-title" data-lang="footer_contact_title">پەیوەندی</p>
-          <div class="footer-contact">
-            <p data-lang="footer_contact_email">📧 support@ppalend.com</p>
-            <p data-lang="footer_contact_region">📍 هەرێمی کوردستان — عێراق</p>
-          </div>
-          <div class="footer-social">
-            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_facebook" aria-label="Facebook">f</a>
-            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_instagram" aria-label="Instagram">i</a>
-            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_youtube" aria-label="YouTube">▶</a>
-            <a class="social-icon" href="#" data-lang-attr="aria-label:footer_social_telegram" aria-label="Telegram">t</a>
-          </div>
-        </div>
-        <div class="footer-newsletter">
-          <p class="footer-title" data-lang="footer_newsletter_title">نامەی هەواڵ</p>
-          <form action="mailto:support@ppalend.com" method="post" enctype="text/plain">
-            <input class="footer-input" type="email" name="email" data-lang-placeholder="footer_newsletter_placeholder" placeholder="ئیمەیڵەکەت" required>
-            <button class="footer-btn" type="submit" data-lang="footer_newsletter_btn">تۆمار</button>
-          </form>
-        </div>
-      </div>
-      <div class="footer-bottom">© ${year} PPAlend - <span data-lang="footer_rights">هەموو مافەکان پارێزراون</span></div>
-    </div>
-  `;
+  const make = (tag, attrs) => {
+    const n = document.createElement(tag);
+    if (attrs) {
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v == null) continue;
+        if (k === "class") n.className = String(v);
+        else if (k === "text") n.textContent = String(v);
+        else n.setAttribute(k, String(v));
+      }
+    }
+    return n;
+  };
+
+  const inner = make("div", { class: "footer-inner" });
+  const top = make("div", { class: "footer-top" });
+
+  // Brand
+  const colBrand = make("div");
+  const brand = make("div", { class: "footer-brand" });
+  brand.appendChild(make("img", { src: `${root}logo.png`, alt: "PPAlend", class: "footer-logo" }));
+  const brandText = make("div");
+  brandText.appendChild(make("h3", { "data-lang": "footer_brand_title", text: "پلاتفۆرمی پەروەردەیی ئەلند" }));
+  brandText.appendChild(make("p", {
+    class: "footer-desc",
+    "data-lang": "footer_brand_desc",
+    text: "پلاتفۆرمێکی مۆدێرن بۆ پێشکەشکردنی ناوەڕۆکی خوێندنی بەکوێت و بەخێرایی."
+  }));
+  brand.appendChild(brandText);
+  colBrand.appendChild(brand);
+
+  // Links
+  const colLinks = make("div");
+  colLinks.appendChild(make("p", { class: "footer-title", "data-lang": "footer_links_title", text: "بەستەرەکان" }));
+  const ul = make("ul", { class: "footer-links" });
+  const link = (href, key, text) => {
+    const li = make("li");
+    li.appendChild(make("a", { href, "data-lang": key, text }));
+    return li;
+  };
+  ul.appendChild(link(`${root}index.html`, "footer_nav_home", "سەرەکی"));
+  ul.appendChild(link(`${root}index.html#subjects`, "footer_nav_subjects", "بەشەکان"));
+  ul.appendChild(link(`${root}index.html#about`, "footer_nav_about", "دەربارە"));
+  ul.appendChild(link(`${root}login.html`, "footer_nav_login", "چوونەژوورەوە"));
+  colLinks.appendChild(ul);
+
+  // Contact + socials
+  const colContact = make("div");
+  colContact.appendChild(make("p", { class: "footer-title", "data-lang": "footer_contact_title", text: "پەیوەندی" }));
+  const contact = make("div", { class: "footer-contact" });
+  contact.appendChild(make("p", { "data-lang": "footer_contact_email", text: "📧 support@ppalend.com" }));
+  contact.appendChild(make("p", { "data-lang": "footer_contact_region", text: "📍 هەرێمی کوردستان — عێراق" }));
+  colContact.appendChild(contact);
+  const socials = make("div", { class: "footer-social" });
+  const social = (labelKey, label, iconName) => {
+    const a = make("a", { class: "social-icon", href: "#", "data-lang-attr": `aria-label:${labelKey}`, "aria-label": label });
+    const i = make("i", { "data-lucide": iconName, "aria-hidden": "true" });
+    a.appendChild(i);
+    return a;
+  };
+  socials.appendChild(social("footer_social_facebook", "Facebook", "facebook"));
+  socials.appendChild(social("footer_social_instagram", "Instagram", "instagram"));
+  socials.appendChild(social("footer_social_youtube", "YouTube", "youtube"));
+  socials.appendChild(social("footer_social_telegram", "Telegram", "send"));
+  colContact.appendChild(socials);
+
+  // Newsletter
+  const colNews = make("div", { class: "footer-newsletter" });
+  colNews.appendChild(make("p", { class: "footer-title", "data-lang": "footer_newsletter_title", text: "نامەی هەواڵ" }));
+  const form = make("form", { action: "mailto:support@ppalend.com", method: "post", enctype: "text/plain" });
+  const input = make("input", {
+    class: "footer-input",
+    type: "email",
+    name: "email",
+    placeholder: "ئیمەیڵەکەت",
+    required: ""
+  });
+  input.setAttribute("data-lang-placeholder", "footer_newsletter_placeholder");
+  const btn = make("button", { class: "footer-btn", type: "submit", "data-lang": "footer_newsletter_btn", text: "تۆمار" });
+  form.appendChild(input);
+  form.appendChild(btn);
+  colNews.appendChild(form);
+
+  top.appendChild(colBrand);
+  top.appendChild(colLinks);
+  top.appendChild(colContact);
+  top.appendChild(colNews);
+
+  const bottom = make("div", { class: "footer-bottom" });
+  bottom.appendChild(document.createTextNode(`© ${year} PPAlend - `));
+  bottom.appendChild(make("span", { "data-lang": "footer_rights", text: "هەموو مافەکان پارێزراون" }));
+
+  inner.appendChild(top);
+  inner.appendChild(bottom);
+  footer.replaceChildren(inner);
 
   footer.dataset.enhanced = "true";
   if (typeof LangManager !== "undefined") {
     LangManager.apply();
   }
+  ensureLucideIcons();
 }
 
 // Init on DOM ready
@@ -162,4 +229,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof LangManager !== 'undefined') LangManager.init();
   upgradeFooter();
   bootstrapRouteProtection();
+  ensureLucideIcons();
 });

@@ -125,7 +125,9 @@
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        // Reduce token persistence risk vs localStorage (still survives refresh in the same tab).
+        storage: window.sessionStorage
       }
     });
 
@@ -221,9 +223,9 @@
     const updatedAt = new Date().toISOString();
 
     const { data: existing } = await client.from("users").select("role").eq("id", user.id).maybeSingle();
-    let role = "student";
-    if (existing?.role === "admin") role = "admin";
-    else if (user.email?.toLowerCase() === cfg.adminEmail && cfg.adminEmail) role = "admin";
+    // IMPORTANT: do not grant admin from client config or user metadata.
+    // Admin is determined strictly by database-side role assignment (e.g., trigger) and RLS.
+    let role = existing?.role === "admin" ? "admin" : "student";
 
     const { error: upsertErr } = await client.from("users").upsert(
       { id: user.id, email: user.email, role, updated_at: updatedAt },
@@ -246,22 +248,27 @@
   }
 
   async function isUserAdmin(user) {
-    if (!user?.email) return false;
-    const cfg = getConfig();
-    if (user.email.toLowerCase() === cfg.adminEmail && cfg.adminEmail) return true;
+    if (!user?.id) return false;
     const client = await init();
     if (!client) return false;
-    const { data } = await client.from("users").select("role").eq("id", user.id).maybeSingle();
+    // STRICT: admin access must only work if profiles.role = 'admin'
+    const { data, error } = await client.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    if (error) return false;
     return data?.role === "admin";
   }
 
   async function signInWithEmailPassword(email, password, opts) {
     const options = opts && typeof opts === "object" ? opts : {};
     const failEventType = options.securityContext === "admin" ? "admin_login_failed" : "login_failed";
-    const rateKey = options.securityContext === "admin" ? "alend_admin_login_attempts" : "alend_login_attempts";
+    const isAdminContext = options.securityContext === "admin";
     const now = Date.now();
-    const windowMs = options.securityContext === "admin" ? 10 * 60 * 1000 : 5 * 60 * 1000;
-    const maxAttempts = options.securityContext === "admin" ? 5 : 12;
+
+    // Brute-force protection requirement:
+    // - after 5 failed attempts
+    // - lock login for 30 seconds
+    const lockKey = isAdminContext ? "alend_admin_login_lock" : "alend_login_lock";
+    const maxFails = isAdminContext ? 5 : 12;
+    const lockMs = isAdminContext ? 30 * 1000 : 0;
 
     const client = await init();
     if (!client) throw new Error(t("err_config_missing"));
@@ -274,29 +281,17 @@
       throw new Error(t("err_password_required"));
     }
 
-    // Basic client-side abuse guard (server-side controls must still exist).
+    // Client-side lockout (must be backed by DB/RLS for real security).
     try {
-      const raw = localStorage.getItem(rateKey);
-      const data = raw ? JSON.parse(raw) : { n: 0, t: now };
-      if (!data.t || now - data.t > windowMs) {
-        data.n = 0;
-        data.t = now;
+      const raw = localStorage.getItem(lockKey);
+      const state = raw ? JSON.parse(raw) : { fails: 0, lockedUntil: 0 };
+      if (state.lockedUntil && now < state.lockedUntil) {
+        const seconds = Math.ceil((state.lockedUntil - now) / 1000);
+        throw new Error((getLang() === "ar" ? "محاولات كثيرة. انتظر " : "زۆر هەوڵدان. چاوەڕێ بکە ") + seconds + (getLang() === "ar" ? " ثانية." : " چرکە."));
       }
-      if (data.n >= maxAttempts) {
-        await reportSecurityEvent(
-          {
-            event_type: options.securityContext === "admin" ? "suspicious_admin_rate_limit" : "suspicious_login_rate_limit",
-            email_attempt: trimmedEmail,
-            success: false
-          },
-          null
-        );
-        throw new Error(t("err_rate_limited"));
-      }
-      data.n += 1;
-      localStorage.setItem(rateKey, JSON.stringify(data));
-    } catch {
-      // Ignore localStorage failures and continue.
+    } catch (e) {
+      // If we failed to parse storage OR we're locked, surface the lock message.
+      if (e instanceof Error && e.message) throw e;
     }
 
     const { data, error } = await client.auth.signInWithPassword({
@@ -305,6 +300,25 @@
     });
 
     if (error) {
+      // Count failed attempts and apply lockout.
+      if (isAdminContext) {
+        try {
+          const raw = localStorage.getItem(lockKey);
+          const state = raw ? JSON.parse(raw) : { fails: 0, lockedUntil: 0 };
+          state.fails = Number(state.fails || 0) + 1;
+          if (state.fails >= maxFails) {
+            state.fails = 0;
+            state.lockedUntil = now + lockMs;
+            localStorage.setItem(lockKey, JSON.stringify(state));
+          } else {
+            state.lockedUntil = 0;
+            localStorage.setItem(lockKey, JSON.stringify(state));
+          }
+        } catch {
+          // ignore
+        }
+      }
+
       await reportSecurityEvent(
         { event_type: failEventType, email_attempt: trimmedEmail, success: false },
         null
@@ -321,11 +335,7 @@
     // Phase 1: do not block login on email verification.
 
     if (data.user) await syncPublicUserRow(data.user);
-    try {
-      localStorage.removeItem(rateKey);
-    } catch {
-      // ignore
-    }
+    try { localStorage.removeItem(lockKey); } catch { /* ignore */ }
     if (data.session?.access_token) {
       await reportSecurityEvent(
         {
@@ -424,13 +434,21 @@
   }
 
   async function requireAdmin() {
-    await requireAuth();
     const session = await getSession();
-    const user = session?.user;
-    if (!user || !(await isUserAdmin(user))) {
+    if (!session?.user) {
       const appBase = getAppBaseUrl();
-      window.location.href = `${appBase}/index.html`;
+      const current = window.location.pathname + window.location.search + window.location.hash;
+      localStorage.setItem("alend_auth_return_to", current);
+      window.location.href = `${appBase}/login.html`;
+      return false;
     }
+    const ok = await isUserAdmin(session.user);
+    if (!ok) {
+      // Force sign-out to prevent any client-side UI bypass.
+      await signOutLocal();
+      return false;
+    }
+    return true;
   }
 
   function consumeReturnTo() {
