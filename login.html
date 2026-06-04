@@ -249,6 +249,7 @@
     <div class="card-head">
       <div style="display:flex;justify-content:flex-start;margin-bottom:0.25rem;gap:0.4rem;flex-wrap:wrap">
         <button type="button" id="langKu" class="auth-tab" style="grid-column:unset;width:auto;padding:0.35rem 0.6rem;font-size:0.78rem">کوردی</button>
+        <button type="button" id="langBa" class="auth-tab" style="grid-column:unset;width:auto;padding:0.35rem 0.6rem;font-size:0.78rem">بادینی</button>
         <button type="button" id="langAr" class="auth-tab" style="grid-column:unset;width:auto;padding:0.35rem 0.6rem;font-size:0.78rem">العربية</button>
       </div>
       <div class="logo-wrap">
@@ -322,10 +323,37 @@
       const panelLogin = document.getElementById("panelLogin");
       const panelRegister = document.getElementById("panelRegister");
       const langKu = document.getElementById("langKu");
+      const langBa = document.getElementById("langBa");
       const langAr = document.getElementById("langAr");
 
       const i18n = {
         ku: {
+          err_unknown: "هەڵە.",
+          welcome: "بەخێربێیتەوە",
+          subtitle: "پلاتفۆرمی پەروەردەیی ئەلند — چوونەژوورەوە یان تۆمارکردن بە ئیمەیڵ و تێپەڕەوشە.",
+          tab_login: "چوونەژوورەوە",
+          tab_register: "تۆمارکردن",
+          label_email: "ئیمەیڵ",
+          label_password: "تێپەڕەوشە",
+          label_fullname: "ناوی تەواو",
+          label_phone: "ژمارەی مۆبایل",
+          label_password2: "دووبارەکردنەوەی تێپەڕەوشە",
+          btn_login: "چوونەژوورەوە",
+          btn_register: "تۆمارکردن",
+          ph_email: "name@example.com",
+          ph_password: "••••••••",
+          ph_fullname: "ناوی تەواو",
+          ph_phone: "+9647XXXXXXXX",
+          hint_phone: "10–15 ژمارە؛ دەتوانێت + لە سەرەتادا بێت.",
+          hint_password: "لانیکەم 8 پیت، پیتی گەورە و بچووک، و ژمارە.",
+          hint_access: "ناوەڕۆکی پەروەردەیی تەنها دوای چوونەژوورەوە دەبێتە بەردەست.",
+          back_home: "← گەڕانەوە بۆ سەرەکی",
+          msg_need_config: "ڕێکخستنی Supabase تەواو نییە. تکایە `js/env.js` ڕاست بکە.",
+          msg_password_mismatch: "تێپەڕەوشەکان یەک ناگرنەوە.",
+          msg_register_ok: "تۆمارکردن سەرکەوتوو بوو. ئێستا دەتوانیت بچیتە ژوورەوە."
+        },
+        ba: {
+          err_unknown: "هەڵە.",
           welcome: "بەخێربێیتەوە",
           subtitle: "پلاتفۆرمی پەروەردەیی ئەلند — چوونەژوورەوە یان تۆمارکردن بە ئیمەیڵ و تێپەڕەوشە.",
           tab_login: "چوونەژوورەوە",
@@ -350,6 +378,7 @@
           msg_register_ok: "تۆمارکردن سەرکەوتوو بوو. ئێستا دەتوانیت بچیتە ژوورەوە."
         },
         ar: {
+          err_unknown: "حدث خطأ.",
           welcome: "مرحباً بك",
           subtitle: "منصة ألند التعليمية — تسجيل الدخول أو إنشاء حساب بالبريد وكلمة المرور.",
           tab_login: "تسجيل الدخول",
@@ -377,11 +406,13 @@
 
       function currentLang() {
         const raw = (localStorage.getItem("alend_lang") || "ku").toLowerCase();
-        return raw === "ar" ? "ar" : "ku";
+        if (raw === "ar") return "ar";
+        if (raw === "ba") return "ba";
+        return "ku";
       }
 
       function setLang(lang) {
-        const v = lang === "ar" ? "ar" : "ku";
+        const v = lang === "ar" ? "ar" : lang === "ba" ? "ba" : "ku";
         localStorage.setItem("alend_lang", v);
         const tr = i18n[v];
         document.querySelectorAll("[data-i18n]").forEach((el) => {
@@ -393,6 +424,7 @@
           if (k && tr[k]) el.setAttribute("placeholder", tr[k]);
         });
         langKu.classList.toggle("active", v === "ku");
+        if (langBa) langBa.classList.toggle("active", v === "ba");
         langAr.classList.toggle("active", v === "ar");
         document.documentElement.lang = v === "ar" ? "ar" : "ku";
         document.documentElement.dir = "rtl";
@@ -417,7 +449,12 @@
       tabLogin.addEventListener("click", () => setMode(true));
       tabRegister.addEventListener("click", () => setMode(false));
       langKu.addEventListener("click", () => setLang("ku"));
+      if (langBa) langBa.addEventListener("click", () => setLang("ba"));
       langAr.addEventListener("click", () => setLang("ar"));
+
+      window.addEventListener("storage", (e) => {
+        if (e.key === "alend_lang") setLang(currentLang());
+      });
 
       async function boot() {
         setLang(currentLang());
@@ -449,7 +486,7 @@
           const returnTo = window.AlendAuth.consumeReturnTo?.() || "index.html";
           window.location.href = returnTo;
         } catch (error) {
-          errEl.textContent = error.message || "هەڵە.";
+          errEl.textContent = error.message || i18n[currentLang()].err_unknown || "هەڵە.";
         } finally {
           btn.disabled = false;
           btn.textContent = prevText;
@@ -491,7 +528,7 @@
           okEl.textContent = i18n[currentLang()].msg_register_ok;
           setMode(true);
         } catch (error) {
-          errEl.textContent = error.message || "هەڵە.";
+          errEl.textContent = error.message || i18n[currentLang()].err_unknown || "هەڵە.";
         } finally {
           btn.disabled = false;
           btn.textContent = prevText;
